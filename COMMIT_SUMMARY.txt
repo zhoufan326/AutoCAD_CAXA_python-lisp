@@ -1,0 +1,26 @@
+Summary: Fix generate_filename call and expose geometry params; remove local test mocks
+
+Changes to be committed:
+
+1) Modified: main.py
+   - Fix: `generate_filename` was incorrectly called with a third `type` argument.
+   - Update: title now set with `self.add_title(f"{type}/{generate_filename(radius, chord_length)}")`.
+   - Reason: `generate_filename` accepts only (radius, chord_length); the previous call raised TypeError and stopped drawing flow.
+
+2) Modified: geometry.py
+   - Fix: include `a`, `b`, `c` in returned geometry dict so `dimension()` can read them.
+   - Reason: `dimension()` expects `geom['a']`, `geom['b']`, `geom['c']`; missing keys caused KeyError during drawing.
+
+3) Removed (local-test-only): pyautocad.py, test_e2e.py
+   - These were local mocks and a dry-run harness added temporarily for testing without AutoCAD.
+   - They are not intended for commit into the main repository.
+
+Notes / Test:
+- Performed local dry-run using mocks; verified a test DWG file was created during verification.
+- The minimal functional changes are only to `main.py` and `geometry.py`. Remove mocks before committing.
+
+Suggested commit message (one-liner):
+"Fix filename/title bug and expose geometry offsets; remove local test mocks"
+
+Suggested full commit message:
+"Fix generate_filename misuse (was passing `type` as third arg) and add `a,b,c` to geometry output so dimension() no longer KeyErrors. Remove local pyautocad/test_e2e mocks used only for dry-run verification."

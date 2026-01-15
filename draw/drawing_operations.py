@@ -1,15 +1,27 @@
 # drawing_operations.py
 import math
 from pyautocad import APoint, aDouble
-from utils import create_hatch
+
 class DrawingOperations:
     def __init__(self, acad, set_layer_func):
       
         self.acad = acad
         self.set_layer = set_layer_func
+
+
+    def draw_views(self, geom, drawing_type="XJMJM"):
+        """绘制所有视图"""
+        self.draw_main_view(geom,drawing_type=drawing_type)
+        
+       
+
+        if drawing_type=="XJMJM" or drawing_type=="XPMJM":
+            self.draw_top_view(geom)#只有这两类绘制俯视图
+
     
-    def draw_main_view(self, geom):
+    def draw_main_view(self, geom,drawing_type="XJMJM"):
         """绘制主视图
+        type: 主视图类型，默认"XJMJM"
         
         """
         radius = geom["radius"]
@@ -21,34 +33,30 @@ class DrawingOperations:
             self._draw_main_view_negative_radius(geom)
             
 
-        
+        self.set_layer("轮廓线")
         # 中心小圆弧，r固定为4
         self.acad.model.AddArc(geom["center2"], 4, math.radians(90), math.radians(180))
          # 绘制多段线
+        self.draw_bottom(geom,drawing_type=drawing_type)
         
+       
         
-        # 虚线
-        self.set_layer("虚线")
-        self.acad.model.AddLine(APoint(3, geom["y_M"]), APoint(3, geom["y_L"]))
-        
-        self.set_layer("剖面线")
-        internal_x=geom["center2"].x-5
-        internal_y=geom["center2"].y-5
-        create_hatch(self.acad, internal_x, internal_y, scale=0.5)
+        # 中心线
+        self.draw_center_line(geom)
 
 
     def _draw_main_view_positive_radius(self, geom):
         """绘制正半径主视图（凸圆弧）"""
         self.set_layer("轮廓线")
         self.draw_polylines_positive(geom)
-        self.draw_polylines(geom)
+        # self.draw_polylines(geom)
 
 
         # 画直线，对于凸圆弧，只画对称轴右侧的线
         self.acad.model.AddLine(APoint(geom["center"].x, geom["chord_y"]), geom["right_point"])
         self.acad.model.AddLine(APoint(geom["center"].x, geom["y_U"]), APoint(geom["center"].x + 5, geom["y_U"]))
         self.acad.model.AddLine(APoint(geom["center"].x, geom["y_M"]), APoint(geom["center"].x + 5, geom["y_M"]))
-        self.acad.model.AddLine(APoint(geom["center"].x-9, geom["y_L"]), APoint(geom["center"].x + 9, geom["y_L"]))
+       
         
         # 创建圆弧
         arc = self.acad.model.AddArc(
@@ -73,7 +81,7 @@ class DrawingOperations:
         self.acad.model.AddLine(APoint(geom["center"].x, geom["y_U"]), APoint(geom["center"].x + 5, geom["y_U"]))
         #统一剖面线到左侧
         self.acad.model.AddLine(APoint(geom["center"].x, geom["y_M"]), APoint(geom["center"].x + 5, geom["y_M"]))
-        self.acad.model.AddLine(APoint(geom["center"].x-9, geom["y_L"]), APoint(geom["center"].x + 9, geom["y_L"]))
+        # self.acad.model.AddLine(APoint(geom["center"].x-9, geom["y_L"]), APoint(geom["center"].x + 9, geom["y_L"]))
         
 
         
@@ -96,18 +104,16 @@ class DrawingOperations:
         point_l=geom["left_point"]-APoint(1,0)
         point_r=geom["right_point"]+APoint(1,0)
 
-
+  #绘制两条连接圆弧的竖线
         self.acad.doc.SendCommand(f'_LINE {arc_down2.StartPoint[0]},{arc_down2.StartPoint[1]} {point_l.x},{point_l.y} \n')
 
         self.acad.doc.SendCommand(f'_LINE {point_r.x},{point_r.y} {arc_down.EndPoint[0]},{arc_down.EndPoint[1]} \n')
-        #绘制两条竖线
+        
         self.draw_polylines_N(geom)
-        self.draw_polylines(geom)
+        # self.draw_polylines(geom)
         
         
-        # 虚线
-        self.set_layer("虚线")
-        self.acad.model.AddLine(APoint(3, geom["b"]), APoint(3, geom["c"]))
+
         
         return arc, arc_down, arc_down2
         
@@ -120,7 +126,7 @@ class DrawingOperations:
         pnts = [
             APoint(geom["left_point"].x, geom["left_point"].y),
             APoint(geom["left_point"].x, geom["y_U"]),
-            APoint(-5, geom["y_U"]), 
+            APoint(geom["center"].x-5, geom["y_U"]), 
             
         ]
         pnts = [j for i in pnts for j in i]
@@ -131,7 +137,7 @@ class DrawingOperations:
         pnts2 = [
             APoint(geom["right_point"].x, geom["right_point"].y), 
             APoint(geom["right_point"].x, geom["y_U"]),
-            APoint(5, geom["y_U"]), 
+            APoint(geom["center"].x+5, geom["y_U"]), 
             
         ]
 
@@ -162,29 +168,54 @@ class DrawingOperations:
         pnts2 = aDouble(pnts2)
         self.acad.model.AddPolyLine(pnts2)
 
-    def draw_polylines(self, geom):
+    def draw_bottom(self, geom,drawing_type):
         """绘制底座部分
         """
-        # 左侧多段线
-        pnts = [
-            APoint(-5, geom["y_U"]), 
-            APoint(-5, geom["y_M"]), 
-            APoint(-9, geom["y_M"]),
-            APoint(-9, geom["y_L"])
-        ]
-        pnts = [j for i in pnts for j in i]
-        pnts = aDouble(pnts)
-        self.acad.model.AddPolyLine(pnts)
-        # 右侧多段线
-        pnts2 = [
-            APoint(5, geom["y_U"]), 
-            APoint(5, geom["y_M"]), 
-            APoint(9, geom["y_M"]),
-            APoint(9, geom["y_L"])
-        ]
-        pnts2 = [j for i in pnts2 for j in i]
-        pnts2 = aDouble(pnts2)
-        self.acad.model.AddPolyLine(pnts2)
+      
+        if drawing_type=="XJMJM" or drawing_type=="XPMJM":
+            B = APoint(geom["center"].x-9, geom["y_M"])
+            C = APoint(geom["center"].x-9, geom["y_L"])
+       
+            pnts = [
+                APoint(geom["center"].x-5, geom["y_U"]), 
+                APoint(geom["center"].x-5, geom["y_M"]), 
+                B,
+                C,
+                APoint(geom["center"].x+9, geom["y_L"]),
+                APoint(geom["center"].x+9, geom["y_M"]),
+                APoint(geom["center"].x+5, geom["y_M"]),
+                APoint(geom["center"].x+5, geom["y_U"]),  
+            ]
+            pnts = [j for i in pnts for j in i]
+            pnts = aDouble(pnts)
+            self.acad.model.AddPolyLine(pnts)
+
+             # 虚线
+            self.set_layer("虚线")
+            self.acad.model.AddLine(APoint(3, geom["y_M"]), APoint(3, geom["y_L"]))
+            # ---------当模子不是精磨和抛光模时---------
+        else:
+            self.acad.model.AddLine(APoint(0, geom["y_M2"]), APoint(7, geom["y_M2"]))
+
+            B = APoint(geom["center"].x-7, geom["y_M"])
+            B2=APoint(geom["center"].x-7, geom["y_M2"])
+            C = APoint(geom["center"].x-5, geom["y_L"])
+            pnts2 = [
+                APoint(geom["center"].x-5, geom["y_U"]), 
+                APoint(geom["center"].x-5, geom["y_M"]), 
+                B,B2, C,
+                APoint(geom["center"].x+5, geom["y_L"]),
+                APoint(geom["center"].x+7, geom["y_M"]-5),
+                APoint(geom["center"].x+7, geom["y_M"]),
+                #这三点是B,B2,C的对称点
+                APoint(geom["center"].x+5, geom["y_M"]),
+                APoint(geom["center"].x+5, geom["y_U"]),  
+            ]
+            pnts2 = [j for i in pnts2 for j in i]
+            pnts2 = aDouble(pnts2)
+            self.acad.model.AddPolyLine(pnts2)
+
+           
     
 
 
@@ -237,9 +268,12 @@ class DrawingOperations:
         self.set_layer("尺寸线")
         self.dia(center_down, geom["half_chord"], math.radians(45)) 
         self.dia(center_down, 4, 0) 
-        self.dia(center_down, 4, math.radians(90))   
+        if geom["chord_length"] >= 32:
+            self.dia(center_down, 9, math.radians(135),1)   
+        else:
+            self.dia(center_down, 9, math.radians(135),12)   
     # 标注直径    
-    def dia(center, radius, angle): 
+    def dia(self, center, radius, angle, leader_length=10): 
             """标注直径, center: 圆心, radius: 半径, angle: 角度"""
             x = radius * math.cos(angle) 
             y = radius * math.sin(angle) 
@@ -247,8 +281,7 @@ class DrawingOperations:
 
             ChordPoint = center + APoint(x, y) 
             FarChordPoint = center - APoint(x, y) 
-            LeaderLength = 10 
-            return self.acad.model.AddDimDiametric(ChordPoint, FarChordPoint, LeaderLength) 
+            return self.acad.model.AddDimDiametric(ChordPoint, FarChordPoint, leader_length) 
         
     
     
@@ -261,24 +294,13 @@ class DrawingOperations:
         sym_line.Color = 1
         
         try:
-            sym_line.Linetype = "CENTER"
+            sym_line.Linetype = "CENTER2"
         except:
             try:
-                sym_line.Linetype = "CENTER2"
+                sym_line.Linetype = "CENTER"
             except:
                 pass
     
     
-    def insert_all_blocks(self, geom, insert_block, insert_XJMJM, insert_Zhoufan):
-        """插入所有图块
-        
-        正负半径的图块插入逻辑相同
-        """
-        insertionPnt = APoint(geom["center"].x - 180, geom["center"].y - 270)
-        insert_block(insertionPnt)
-        
-        insertionPnt2 = APoint(geom["center"].x - 412, geom["center"].y - 1902)
-        insert_XJMJM(insertionPnt2)
-        
-        self.set_layer("轮廓线")
-        insert_Zhoufan(insertionPnt2)
+    
+       

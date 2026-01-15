@@ -6,8 +6,41 @@ from typing import Optional
 from pyautocad import APoint, aDouble, Autocad
 from utils import set_layer, create_hatch, insert_block, date_name
 # from utils import load_linetypes
-DEFAULT_TEMPLATE_PATH = r"Z:\AutoCAD_AI\新图样.dwt"
-DEFAULT_SAVE_DIR = "D:\\CAD\\test"
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_TEMPLATE_PATH = os.path.join(BASE_DIR, "新图样.dwt")
+DEFAULT_SAVE_DIR = os.path.join(BASE_DIR, "output")
+
+def safe_acad_operation(operation, operation_name="AutoCAD操作", max_retries=3, retry_delay=1.5):
+    """
+    安全执行AutoCAD操作的包装函数，带有重试机制
+    
+    参数:
+        operation: 要执行的函数或lambda表达式
+        operation_name: 操作名称，用于日志
+        max_retries: 最大重试次数
+        retry_delay: 重试之间的延迟（秒）
+    
+    返回:
+        操作的结果，如果所有重试都失败则返回None
+    """
+    for attempt in range(max_retries):
+        try:
+            result = operation()
+            return result
+        except Exception as e:
+            error_str = str(e)
+            is_busy_error = '-2147418111' in error_str or '拒绝接收' in error_str or '繁忙' in error_str
+            
+            if is_busy_error and attempt < max_retries - 1:
+                print(f"  {operation_name}繁忙，等待重试... (尝试 {attempt + 1}/{max_retries})")
+                time.sleep(retry_delay)
+                retry_delay *= 1.2  # 逐渐增加延迟
+            else:
+                print(f"  {operation_name}失败: {e}")
+                raise
+    return None
+
 class FixtureOperations:
       # ==================== 创建 AutoCAD 连接 ====================
     def __init__(self, acad=None, template_path=DEFAULT_TEMPLATE_PATH):
@@ -28,19 +61,13 @@ class FixtureOperations:
             template_path = os.path.normpath(template_path)
             if os.path.exists(template_path):
                 print(f"使用模板: {template_path}")
-                for _ in range(3):
-                    try:
-                        self.acad.app.Documents.Add(template_path)
-                        print("模板加载成功，等待文档准备就绪...")
-                        time.sleep(1.5)
-                        break
-                    except Exception as e:
-                        if '繁忙' in str(e) or '2147418111' in str(e):
-                            time.sleep(1.5)
-                            continue
-                        else:
-                            print(f"模板加载失败: {e}")
-                            break
+                
+                def load_template():
+                    self.acad.app.Documents.Add(template_path)
+                
+                safe_acad_operation(load_template, "模板加载", max_retries=3, retry_delay=1.5)
+                print("模板加载成功，等待文档准备就绪...")
+                time.sleep(1.5)
         self.set_layer=set_layer                
     def save_drawing(self, diameter: float, save_directory: str = DEFAULT_SAVE_DIR) -> Optional[str]:
         if not self.acad or not self.acad.doc:
@@ -183,11 +210,11 @@ class FixtureOperations:
         insertionPnt = APoint(-187, -110)
         insertionPnt2 = APoint(-187, -110)
         
-        base_path = r"Z:\AutoCAD_AI\Blocks"
+        base_path = os.path.join(BASE_DIR, "blocks")
         block_configs = [
-        (insertionPnt, f"{base_path}\\A4图框.dwg"),
-        (insertionPnt2, f"{base_path}\\XSZJ.dwg"),
-        (insertionPnt2, f"{base_path}\\{designer_name}.dwg")
+        (insertionPnt, os.path.join(base_path, "A4图框.dwg")),
+        (insertionPnt2, os.path.join(base_path, "XSZJ.dwg")),
+        (insertionPnt2, os.path.join(base_path, f"{designer_name}.dwg"))
             ]       
         block_results = []
         for i, config in enumerate(block_configs, 1):

@@ -25,7 +25,7 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
     chord_height = radius * math.cos(half_theta_rad)#注意一下，这里弦高本身就可以是复制
 
     if radius > 0:
-        # 球面模的圆心位置  
+        # 球面模的圆心位置  #A4纸210*297
         center = APoint(0, 0)
         #弦的纵坐标
         chord_y = center.y + chord_height
@@ -36,6 +36,7 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
     
         y_U = chord_y - a
         y_M = y_U - b
+        
         #凸面圆弧端点角度
 
         
@@ -59,14 +60,14 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
 
         #下方圆弧的端点角度
         
-    
+    y_M2=y_M-5
     y_L = y_M - c
     #底座下半部分的下横线纵坐标
     
     left_point = APoint(center.x - half_chord, chord_y)
     right_point = APoint(center.x + half_chord, chord_y)
     
-    center2 = APoint(0, y_U - b - c)
+    center2 = APoint(center.x, y_U - b - c)
     
     return {
         "radius": radius,
@@ -74,7 +75,7 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
         "half_chord": half_chord,
         "chord_length": chord_length,
         "chord_y": chord_y,
-        "y_U": y_U, "y_M": y_M, "y_L": y_L,
+        "y_U": y_U, "y_M": y_M,"y_M2":y_M2, "y_L": y_L,
         "right_angle": right_angle,
         "left_angle": left_angle,
         "center": center,
@@ -88,11 +89,11 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
         "c": c
     }
 
-def generate_filename(radius, chord_length, type="XJMJM"):
+def generate_filename(radius, chord_length, drawing_type):
     """生成文件名（返回安全的单个文件名，不包含路径分隔符）。"""
     # 使用下划线替代可能的路径分隔符，保证在 join 时不会创建额外目录
-    safe_type = str(type).replace('/', '_').replace('\\', '_')
+    safe_type = str(drawing_type).replace('/', '_').replace('\\', '_')
     if radius < 0:
-        return f"{safe_type}-R-{abs(radius):.3f}-Phi-{chord_length:.3f}.dwg"
+        return f"{safe_type}_-R{abs(radius):.3f}-Φ {chord_length:.3f}"
     else:
-        return f"{safe_type}-R{radius:.3f}-Phi-{chord_length:.3f}.dwg"
+        return f"{safe_type}_R{radius:.3f}-Φ {chord_length:.3f}"

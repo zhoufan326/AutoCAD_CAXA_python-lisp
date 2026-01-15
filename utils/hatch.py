@@ -7,8 +7,8 @@
 
 from pyautocad import Autocad
 import time
-
-def create_hatch(acad, internal_x=-5, internal_y=-10, pattern="ANSI31", scale=1.0, angle=0):
+acad = Autocad(create_if_not_exists=True) 
+def create_hatch(acad, internal_x=-99, internal_y=1, pattern="ANSI31", scale=1.0, angle=0):
     """
     在已有图形上自动创建剖面线
     内部点默认(-5,-10)，剖面线为ANSI31图案，比例1，角度0
@@ -30,7 +30,7 @@ def create_hatch(acad, internal_x=-5, internal_y=-10, pattern="ANSI31", scale=1.
 
         # 等待边界创建完成
         print("等待边界创建...")
-        time.sleep(1)
+        time.sleep(2)
 
         # 第二步：创建剖面线
         print("执行HATCH命令...")
@@ -43,8 +43,8 @@ def create_hatch(acad, internal_x=-5, internal_y=-10, pattern="ANSI31", scale=1.
 
         # 等待剖面线创建完成
         print("等待剖面线创建...")
-        time.sleep(1)
-
+        time.sleep(2.5)
+        #我的电脑慢，多等一会儿
         print("剖面线创建完成")
         return True
 
@@ -58,4 +58,4 @@ if __name__ == "__main__":
     acad = Autocad(create_if_not_exists=True)
     
     # 创建剖面线
-    create_hatch(acad)
+    create_hatch(acad)    

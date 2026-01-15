@@ -19,6 +19,7 @@
 
 import pandas as pd
 import math
+import os
 from .D_R_ratio2K_V1 import find_best_constant_from_excel as constant_lookup
 
 
@@ -169,8 +170,8 @@ class SwingMachineToolingCalculator:
             '高速抛光修盘基模R值': GPMXJ_R,
             '高速抛光修盘基模口径': GPMXJ_Φ,
             '基准模口径': JZM_Φ,
-            '抛光基模修改模R值': -XPMJM_R,
-            '抛光基模修改模口径': XPMJM_Φ
+            '高速抛光基模修盘R值': -XPMJM_R,
+            '高速抛光基模修盘口径': XPMJM_Φ
         }
         
         return results
@@ -181,7 +182,9 @@ def main():
     # 示例参数
     R = 52.704           # 镜片R值
     blank_D = 22         # 毛坯口径
-    excel_path = "Z:/AutoCAD_AI/口径常数.xlsx"  # Excel文件路径
+    # 获取当前文件的目录，然后构建Excel文件路径
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    excel_path = os.path.join(current_dir, "口径常数.xlsx")  # Excel文件路径
     
     # 创建计算器实例
     calculator = SwingMachineToolingCalculator(

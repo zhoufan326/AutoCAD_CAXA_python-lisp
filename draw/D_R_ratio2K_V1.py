@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 """
 常数查找工具模块
 
@@ -72,7 +73,10 @@ if __name__ == '__main__':
 # 这里是测试代码，当直接运行这个文件时执行
 # 但被其他文件导入时不会执行
     D_R_ratio = 1.92
-    result = find_best_constant_from_excel('G:\周凡工作\下摆机\口径常数.xlsx', D_R_ratio)
+    # 获取当前文件的目录，然后构建Excel文件路径
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    excel_path = os.path.join(current_dir, "口径常数.xlsx")
+    result = find_best_constant_from_excel(excel_path, D_R_ratio)
 
     if result is not None:
         print(f"\n📋 当 D/R系数={D_R_ratio} 时，使用常数: {result}")

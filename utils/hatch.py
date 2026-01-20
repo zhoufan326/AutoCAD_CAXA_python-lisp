@@ -8,7 +8,7 @@
 from pyautocad import Autocad
 import time
 acad = Autocad(create_if_not_exists=True) 
-def create_hatch(acad, internal_x=-99, internal_y=1, pattern="ANSI31", scale=1.0, angle=0):
+def create_hatch(acad, internal_x=-99, internal_y=1, pattern="ANSI31", scale=0.5, angle=0):
     """
     在已有图形上自动创建剖面线
     内部点默认(-5,-10)，剖面线为ANSI31图案，比例1，角度0

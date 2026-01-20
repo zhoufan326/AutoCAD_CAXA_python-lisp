@@ -51,7 +51,7 @@ def date_name( name="XJMJM/R10-Φ10",date="2026/1/1"):
     """
     point1=APoint(70, 81)#上日期位置
     point2=APoint(-10, -102)#下日期位置
-    point3=APoint(72, -75)#名称位置
+    point3=APoint(95, -75)#名称位置
     current_date = datetime.now()
     date= current_date.strftime("%Y/%m/%d")
     try:
@@ -73,6 +73,9 @@ def date_name( name="XJMJM/R10-Φ10",date="2026/1/1"):
 
     try:
         created[2] = acad.model.AddText(name, point3, 2.5)
+        created[2].Alignment = 2#居中对齐
+        created[2].TextAlignmentPoint = point3
+        created[2].Update()
     except Exception:
         created[2] = None
 

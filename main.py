@@ -85,7 +85,7 @@ class AutoCadDrawing:
             self.dimension = dimension
             self.date_name = date_name
             self.create_hatch = create_hatch
-            self.insert_block = insert_block
+            self.insert_block = lambda *args, **kwargs: insert_block(self.acad, *args, **kwargs)
             # 初始化绘图操作对象（将当前 acad 与 set_layer 传入）
             self.drawing_ops = DrawingOperations(self.acad, self.set_layer)
 

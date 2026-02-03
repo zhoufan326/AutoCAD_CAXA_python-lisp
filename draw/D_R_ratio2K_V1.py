@@ -1,5 +1,10 @@
 import pandas as pd
 import os
+import sys
+
+# 设置输出编码为UTF-8
+sys.stdout.reconfigure(encoding='utf-8')
+sys.stderr.reconfigure(encoding='utf-8')
 """
 常数查找工具模块
 

@@ -1,5 +1,6 @@
 from tracemalloc import start
 import math
+from pandas.core.methods.selectn import SelectNFrame
 from pyautocad import APoint, aDouble
 from utils import set_layer
 class POM:
@@ -7,7 +8,14 @@ class POM:
     def __init__(self, acad):
         self.acad = acad
         self.center_h=0
-    
+    def pom_main(self, parameter):
+        self.draw_pom(parameter)
+
+        if parameter["radius2"]<0:
+            self.draw_port(parameter)
+
+
+
     def draw_pom(self, parameter):
         """绘制标准夹具
         parameter（夹具参数）"""
@@ -16,7 +24,8 @@ class POM:
         height = parameter["height"]
         radius = parameter["radius"]
         diameter = parameter["diameter"]
-
+        radius2= parameter["radius2"]
+        thickness=parameter["POM_thickness"]
         A = B + APoint(0, height)
 
         theta=math.asin(diameter/(2*abs(radius)))
@@ -40,12 +49,20 @@ class POM:
 
         C = B + APoint(-0.5, 0)
         D = C + APoint(-1,1)
+        
         if radius>0:
             E = A + APoint(-1.5,6)
-            F = A + APoint(diameter/2-4.2, 6)
+            F = A + APoint(diameter/8-1, 6)
+            G = A + APoint(diameter/4-1,6+diameter/8)
         else:#夹具是凹的情况
             E = A + APoint(-1.5,abs(radius)-self.center_h+6)
-            F = A + APoint(diameter/2-4.2,abs(radius)-self.center_h+6)
+            F = A + APoint(diameter/8-1,abs(radius)-self.center_h+6)
+            G = A + APoint(diameter/4-1,abs(radius)-self.center_h+6+diameter/8)
+        if radius2>0:
+            E=E+APoint(0,-5+thickness)
+            F=F+APoint(0,-5+thickness)
+            G=G+APoint(0,-5+thickness)
+
 
 
         A1= A + APoint(diameter, 0)    
@@ -53,45 +70,66 @@ class POM:
         C1= C + APoint(diameter+1, 0)
         D1= D + APoint(diameter+3,0)
         E1= E + APoint(diameter+3,0)
-        F1= F + APoint(8.4,0)
+        F1= F + APoint(0.75*diameter+2,0)
+        G1= G + APoint(diameter/2+2,0)
+        if radius2<0:
+            set_layer("轮廓线")
+            pnts = [A, B, C, D, E]
+            pnts = [j for i in pnts for j in i]
+            pnts = aDouble(pnts)
+            self.acad.model.AddPolyLine(pnts)
+            pnts1 = [A1, B1, C1, D1, E1]
+            pnts1 = [j for i in pnts1 for j in i]
+            pnts1 = aDouble(pnts1)
+            self.acad.model.AddPolyLine(pnts1)
+            self.acad.model.AddLine(E, E1)
+        else:
+            set_layer("轮廓线")
+            pnts = [A, B, C, D, E, F,G,G1,F1,E1,D1,C1,B1,A1]
+            pnts = [j for i in pnts for j in i]
+            pnts = aDouble(pnts)
+            self.acad.model.AddPolyLine(pnts)
+            # 添加G-G1线段直径标注，定位点在G点上方
+            set_layer("标注线")
+            DimLineLocation_G = G + APoint(0, 9)
 
-        set_layer("轮廓线")
-        pnts = [A, B, C, D, E, F]
-        pnts = [j for i in pnts for j in i]
-        pnts = aDouble(pnts)
-        self.acad.model.AddPolyLine(pnts)
-        pnts1 = [A1, B1, C1, D1, E1, F1]
-        pnts1 = [j for i in pnts1 for j in i]
-        pnts1 = aDouble(pnts1)
-        self.acad.model.AddPolyLine(pnts1)
-
+            dim_G_G1 = self.acad.model.AddDimRotated(G, G1, DimLineLocation_G, 0)
+            dim_G_G1.TextOverride = "Φ<>"
+    
+            # 添加F-F1线段直径标注，定位点比G-G1标注再上方9个单位
+            DimLineLocation_F = G + APoint(0, 18)
+            dim_F_F1 = self.acad.model.AddDimRotated(F, F1, DimLineLocation_F, 0)
+            dim_F_F1.TextOverride = "Φ<>"
+            DimLineLocation_F2 = F1 + APoint(0.75*diameter, 0)
+            dim_G1_F1 = self.acad.model.AddDimRotated(G1, F1, DimLineLocation_F2, math.radians(90))
+            # 将文字放置在尺寸线右侧
+            dim_G1_F1.TextPosition = DimLineLocation_F2 + APoint(9, 0)
+            
+#----------------------绘制中心线-------------#
         set_layer("中心线")
-
-        self.acad.model.AddLine(APoint(A.x+diameter/2, A.y-5), APoint(A.x+diameter/2, A.y+5))
-
+    
+        line = self.acad.model.AddLine(APoint(A.x+diameter/2, A.y-5), APoint(A.x+diameter/2, A.y+10))
+        line.LinetypeScale = 0.1
+        
         set_layer("标注线")
-
-
-
-
 
         dim_list = [None]*10
          #添加左侧参考高度
-        DimLineLocation_C2= C + APoint(-9, 0)
+        DimLineLocation_C2= C + APoint(-4, 0)
         
         dim_list[0] = self.acad.model.AddDimRotated(arc_center, E, DimLineLocation_C2, math.radians(90))
         dim_list[0].TextOverride = "(<>)"
        #添加左侧总高标注
         DimLineLocation_C1= C + APoint(-15, 0)
         dim_list[1] = self.acad.model.AddDimRotated(C, E, DimLineLocation_C1, math.radians(90))
-        DimLineLocation_C = C + APoint(-4, 0)
+        DimLineLocation_C = C + APoint(-10, 0)
         #添加左侧厚度标注
         dim_list[2] = self.acad.model.AddDimRotated(D, E, DimLineLocation_C, math.radians(90))
         #添加总口径标注
         DimLineLocation_E = E + APoint(0, 25)
         dim_list[3] = self.acad.model.AddDimRotated(E, E1, DimLineLocation_E, 0)
-
-        DimLineLocation_B = B + APoint(0, -15)
+        dim_list[3].TextOverride = "Φ<>"
+        DimLineLocation_B = B + APoint(0, -30)
         dim_list[4] = self.acad.model.AddDimRotated(B, B1, DimLineLocation_B, 0)
         dim_list[4].TextOverride = "Φ<>"
         dim_list[4].ToleranceDisplay = 2
@@ -99,31 +137,37 @@ class POM:
         dim_list[4].ToleranceLowerLimit = -0.1
         dim_list[4].TolerancePrecision = 3
         dim_list[4].ToleranceHeightScale = 0.7
+        DimLineLocation_down = B + APoint(0, -10)
+        dim_list[7] = self.acad.model.AddDimRotated(B, C, DimLineLocation_down, 0)
+       
         #添加右侧夹持厚度标注height
         DimLineLocation_B1 = B1 + APoint(9,0)
         dim_list[5] = self.acad.model.AddDimRotated(B1, A1, DimLineLocation_B1, math.radians(90))
+        dim_list[5].TextPosition = DimLineLocation_B1 + APoint(0, -6)
        
        
         #添加半径标注
-        angle_rad = math.radians(80)
-        point_x = center.x - radius * math.cos(angle_rad)
-        point_y = center.y - radius * math.sin(angle_rad)
-        ChordPoint = APoint(point_x, point_y)#ChordPoint - 弦点/圆弧上的点（标注的终点
+        ChordPoint = center + APoint(0,-radius)#ChordPoint - 弦点/圆弧上的点（标注的终点
         dim_list[6] = self.acad.model.AddDimRadial(center, ChordPoint, 10)
         try:
+            
             dim_list[6].StyleName = "ZqStandard$4"# 设置标注样式
+            # 添加前缀：凹（半径<0）或凸（半径>0）
+            if radius < 0:
+                dim_list[6].TextOverride = "凹<>"
+            else:
+                dim_list[6].TextOverride = "凸<>"
             dim_list[6].TextPosition = APoint(-7, -7) + ChordPoint# 标注文字的位置（标注
             dim_list[6].Update()
         except Exception:     
                 pass
-       
+    #---------当抛光面是凹面的时候，绘制夹具端口------------#   
     def draw_port(self, parameter):
         """绘制夹具端口"""
         base = parameter["base"]
         height = parameter["height"]
         A=base + APoint(0, height)
         diameter = parameter["diameter"]
-        height = parameter["height"]
         radius = parameter["radius"]
         if radius<0:
             I = A + APoint(diameter/2-2.5, abs(radius)-self.center_h+1)

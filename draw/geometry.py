@@ -4,31 +4,26 @@ from pyautocad import APoint
 
 def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
     """计算所有几何参数 
-    a为模子的厚度,b为底座上半部分的高度,c为底座下半部分的高度。"""
+    a为模子的厚度,b为底座中间连接轴的高度,c为底座的高度。"""
     # 边界情况检查
-    if abs(radius) <= 0:
-        raise ValueError("半径不能为0")
     if chord_length > 2 * abs(radius):
         raise ValueError("弦长不能大于直径")
-        
+
+
+
+    #----------------------------重要参数----------------------------#
+    chord_center=APoint(0,45) #定义模子圆弧上弦的位置   
     half_chord = chord_length / 2
     half_theta_rad = math.asin(half_chord / abs(radius))
-    half_theta_deg = math.degrees(half_theta_rad)
-
-
-    #------重要参数--------#
-     
-
-    
-    
-    #此处计算弦距离圆心的垂直高度。    
-    chord_height = radius * math.cos(half_theta_rad)#注意一下，这里弦高本身就可以是复制
-
+    half_theta_deg = math.degrees(half_theta_rad)   
+    #此处计算弦距离圆心的垂直高度。 弦心距   
+    chord_to_center = abs(radius) * math.cos(half_theta_rad)#注意一下，这里弦高本身就可以是复制
+   
     if radius > 0:
         # 球面模的圆心位置  #A4纸210*297
-        center = APoint(0, 0)
-        #弦的纵坐标
-        chord_y = center.y + chord_height
+        center = chord_center - APoint(0, chord_to_center)
+        #弦的纵坐标 
+        chord_y = chord_center.y
         #此处计算剩余横线的纵坐标 
         #y_U为上横线的纵坐标，y_M为中横线的纵坐标，y_L为下横线的纵坐标。
 
@@ -39,25 +34,44 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
         
         #凸面圆弧端点角度
 
-        
         right_angle = 90 - half_theta_deg
         left_angle = 90 + half_theta_deg
+        
+        # 为radius > 0的情况设置默认值
+        radius2 = None  
+        half_chordN = None  
+        theta_big = None  
+        theta_small = None  
+     
     
     else: 
+    #半径小于0的情况
+        a=a+1.5#凹模稍微加厚一点
 
-        center = APoint(0, 0)+APoint(0, -2*chord_height)
-        chord_y = center.y + chord_height#弦的纵坐标，此处chord_height为负值
-        
-        y_U = center.y - math.sqrt(radius**2 - 5**2)-a
-            #凹面圆弧底座上半部分的上横线纵坐标
-        y_M = y_U - b
-            #凹面圆弧底座上半部分的中横线纵坐标
 
+        center = chord_center + APoint(0, chord_to_center)
+        chord_y = chord_center.y
+
+        #计算下方圆弧的弦心距，半弦长，圆心与上方圆弧相同。
+        #大圆心角对应的弦心距
+        chord_to_center2=chord_to_center+a
+        half_chordN=half_chord+1
+        #计算下方圆弧的半径
+        theta_big=math.atan(half_chordN/chord_to_center2)
+        radius2=half_chordN/math.sin(theta_big)
+
+        theta_small=math.asin(5/radius2)
+        #小圆心角对应的弦心距
+        chord_to_center3=radius2*math.cos(theta_small)                                               
+        if abs(radius)<11 or chord_length<20:
+            y_U = chord_y - a#凹面圆弧底座连接轴的上横线纵坐标
+            y_M = y_U - b #凹面圆弧底座连接轴的下横线纵坐标
+        else:
+            y_U =center.y - chord_to_center3
+            y_M = y_U - b
             #凹面圆弧端点角度
         left_angle = 270 - half_theta_deg
         right_angle = 270 + half_theta_deg  
-
-
         #下方圆弧的端点角度
         
     y_M2=y_M-5
@@ -66,14 +80,22 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
     
     left_point = APoint(center.x - half_chord, chord_y)
     right_point = APoint(center.x + half_chord, chord_y)
+    #R<0时左右两端点有变化
+    left_pointN = left_point - APoint(1,0)
+    right_pointN = right_point + APoint(1,0)
     
     center2 = APoint(center.x, y_U - b - c)
     
     return {
         "radius": radius,
+        "radius2": radius2,
+        "theta_big": theta_big,
+        "theta_small": theta_small,
         "abs_radius": abs(radius),
         "half_chord": half_chord,
+        "half_chordN": half_chordN,
         "chord_length": chord_length,
+        "chord_to_center": chord_to_center,
         "chord_y": chord_y,
         "y_U": y_U, "y_M": y_M,"y_M2":y_M2, "y_L": y_L,
         "right_angle": right_angle,
@@ -81,19 +103,14 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
         "center": center,
         "center2": center2,
         "left_point": left_point,
-        "right_point": right_point
-    ,
+        "right_point": right_point,
+        "left_pointN": left_pointN,
+        "right_pointN": right_pointN,
+    
         # 返回传入的几何参数以便绘图代码可以直接使用
         "a": a,
         "b": b,
         "c": c
     }
 
-def generate_filename(radius, chord_length, drawing_type):
-    """生成文件名（返回安全的单个文件名，不包含路径分隔符）。"""
-    # 使用下划线替代可能的路径分隔符，保证在 join 时不会创建额外目录
-    safe_type = str(drawing_type).replace('/', '_').replace('\\', '_')
-    if radius < 0:
-        return f"{safe_type}_-R{abs(radius):.3f}-Φ {chord_length:.3f}"
-    else:
-        return f"{safe_type}_R{radius:.3f}-Φ {chord_length:.3f}"
+

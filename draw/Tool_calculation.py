@@ -20,6 +20,7 @@
 import pandas as pd
 import math
 import os
+import sys
 from .D_R_ratio2K_V1 import find_best_constant_from_excel as constant_lookup
 
 
@@ -27,16 +28,16 @@ class SwingMachineToolingCalculator:
     """下摆机工装计算器类"""
     
     def __init__(self, R, blank_D, polyurethane_thickness=0.3, 
-                 diamond_pellet_thickness=3, delta_arc=4):
+                 diamond_pellet_thickness=3, delta_arc=3):
         """
         初始化计算器
         
         参数:
             R: 镜片R值
             blank_D: 毛坯口径
-            polyurethane_thickness: 聚氨酯厚度，默认0.3
-            diamond_pellet_thickness: 金刚石丸片厚度，默认3
-            delta_arc: 口径扩大时弧长增加量，默认4
+            polyurethane_thickness: 聚氨酯厚度,默认0.3
+            diamond_pellet_thickness: 金刚石丸片厚度,默认3
+            delta_arc: 口径扩大时弧长增加量,默认4
         """
         self.R = R
         self.blank_D = blank_D
@@ -66,13 +67,13 @@ class SwingMachineToolingCalculator:
         
     def calculate_XJMJM(self):
         """计算下摆机精磨基模"""
-        if abs(self.R) <= 11:
-            self.XJMJM_R = -self.R
-        elif self.R > 0:
-            self.XJMJM_R = -(self.R + 4)
-        else:
-            self.XJMJM_R = abs(self.R + 4)
-            
+        #如果采用总型丸片
+        self.XJMJM_R = -self.R
+        #如果不采用总型丸片
+        if not (abs(self.R) <= 11 or self.grind_D <= 18):
+           #精磨丸片厚度按4算
+           diamend_JM = self.diamond_pellet_thickness+1
+           self.XJMJM_R = (abs(self.XJMJM_R) + diamend_JM) if self.XJMJM_R > 0 else -(abs(self.XJMJM_R) + diamend_JM)   
         self.XJMJM_Φ = abs(self.XJMJM_R) * self.grind_D / abs(self.R)
         return self.XJMJM_R, self.XJMJM_Φ
         
@@ -90,23 +91,20 @@ class SwingMachineToolingCalculator:
         """计算高速抛光修盘基模"""
         R = self.R
         
-        if 0 < R <= 11:
+        if abs(R) <= 11 or self.grind_D <= 18:
             self.GPMXJ_R = R
-        elif R > 11:
-            self.GPMXJ_R = R - self.diamond_pellet_thickness
-        elif -11 <= R < 0:
-            self.GPMXJ_R = R
-        elif R < -11:
+        else:
             self.GPMXJ_R = R - self.diamond_pellet_thickness
             
-        # 计算公式：精磨口径 * ABS(修盘基模R值) / ABS(镜片R值)
         Φ = abs(self.GPMXJ_R) * self.grind_D / abs(R)
         
-        # 按照弧长增量扩大口径
-        θ = 2 * math.asin(Φ / (2 * R))
-        arc = R * θ
-        self.GPMXJ_Φ = 2 * R * math.sin((arc + self.delta_arc) / (2 * R))
-        
+        if abs(R) <= 11 or self.grind_D <= 18:
+            self.GPMXJ_Φ=Φ
+        else:
+            θ = 2 * math.asin(Φ / (2 * R))
+            arc = R * θ
+            self.GPMXJ_Φ = 2 * R * math.sin((arc + self.delta_arc) / (2 * R))
+
         return self.GPMXJ_R, self.GPMXJ_Φ
         
     def calculate_JZM(self):
@@ -114,8 +112,15 @@ class SwingMachineToolingCalculator:
         if self.GPMXJ_Φ is None or self.GPMXJ_R is None:
             self.calculate_GPMXJ()
             
-        self.JZM_Φ = abs(self.R) * self.GPMXJ_Φ / abs(self.GPMXJ_R)
-        return self.JZM_Φ
+        self.JZM_JAZ_Φ = abs(self.R) * self.GPMXJ_Φ / abs(self.GPMXJ_R)
+        # 按照弧长增量扩大口径
+        R = self.GPMXJ_R
+        θ = 2 * math.asin(self.JZM_JAZ_Φ / (2 * R))
+        arc = R * θ
+
+        self.JZM_WP_Φ = 2 * R * math.sin((arc + self.delta_arc) / (2 * R))
+
+        return self.JZM_JAZ_Φ, self.JZM_WP_Φ
         
     def calculate_all(self, excel_path):
         """计算所有工装参数"""
@@ -148,9 +153,11 @@ class SwingMachineToolingCalculator:
         print(f"高速抛光修盘基模口径: {GPMXJ_Φ:.3f}")
         
         # 5. 计算基准模
-        JZM_Φ = self.calculate_JZM()
-        print(f"基准模R值: ±{self.R}")
-        print(f"基准模口径: {JZM_Φ:.3f}")
+        JZM_JAZ_Φ, JZM_WP_Φ = self.calculate_JZM()
+        print(f"基准模压聚氨酯R值: {self.R}")
+        print(f"基准模改丸片R值: -{self.R}")
+        print(f"基准模压聚氨酯口径: {JZM_JAZ_Φ:.3f}")
+        print(f"基准模改丸片口径: {JZM_WP_Φ:.3f}")
         
         # 6. 计算抛光基模修改模
         print(f"高速抛光模基模修盘R值: {-XPMJM_R}")
@@ -169,7 +176,8 @@ class SwingMachineToolingCalculator:
             '下摆机抛光基模口径': XPMJM_Φ,
             '高速抛光修盘基模R值': GPMXJ_R,
             '高速抛光修盘基模口径': GPMXJ_Φ,
-            '基准模口径': JZM_Φ,
+            '基准模压聚氨酯口径': JZM_JAZ_Φ,
+            '基准模改丸片口径': JZM_WP_Φ,
             '高速抛光基模修盘R值': -XPMJM_R,
             '高速抛光基模修盘口径': XPMJM_Φ
         }
@@ -192,7 +200,7 @@ def main():
         blank_D=blank_D,
         polyurethane_thickness=0.3,
         diamond_pellet_thickness=3,
-        delta_arc=4
+        delta_arc=2
     )
     
     # 执行计算

@@ -41,7 +41,46 @@ class FixtureOperations:
             )
             time.sleep(0.5)
 
-    def save_drawing(self,  save_dir=SAVE_DIR):
+    def print_to_pdf(self, pdf_path):
+        """将图纸打印为PDF文件"""
+        if not self.acad.doc:
+            print("错误: 未找到 AutoCAD 文档")
+            return False
+            
+        try:
+            # 设置打印配置
+            plot_config = self.acad.doc.PlotConfigurations.Add(f"PDF_Plot_{self.filename}", "Model")
+            
+            # 配置打印设备为DWG to PDF.pc3
+            plot_config.ConfigName = "DWG to PDF.pc3"
+            plot_config.PaperSize = "A4"
+            plot_config.UseStandardScale = True
+            plot_config.StandardScale = 1
+            plot_config.PlotType = 3  # 0=Display, 1=Extents, 2=Limits, 3=View, 4=Window, 5=Layout
+            plot_config.PlotToFile = True
+            plot_config.PlotFile = pdf_path
+            plot_config.CenterPlot = True
+            plot_config.PlotRotation = 0  # 0=Portrait, 1=Landscape
+            
+            # 应用打印配置
+            retry_operation(
+                lambda: self.acad.doc.Plot.PlotToDevice(plot_config.ConfigName, plot_config.Name),
+                "执行打印"
+            )
+            
+            # 删除临时打印配置
+            retry_operation(
+                lambda: plot_config.Delete(),
+                "删除临时打印配置"
+            )
+            
+            print(f"✓ PDF 文件已创建: {pdf_path}")
+            return True
+        except Exception as e:
+            print(f"错误: 打印为PDF失败 - {e}")
+            return False
+    
+    def save_drawing(self, save_dir=SAVE_DIR):
         """保存图纸"""
         if not self.acad.doc:
             print("错误: 未找到 AutoCAD 文档")
@@ -49,16 +88,20 @@ class FixtureOperations:
         
         os.makedirs(save_dir, exist_ok=True)
         
-                                                
         filepath = os.path.join(save_dir, self.filename)
         
-        # 保存文件
+        # 保存DWG文件
         retry_operation(
             lambda: self.acad.doc.SaveAs(filepath, 60),
             "保存图纸"
         )
+        
+        # 打印为PDF
+        pdf_path = os.path.join(save_dir, f"{self.filename}.pdf")
+        self.print_to_pdf(pdf_path)
+        
         return filepath
-
+        
     def create_drawing(self, params, designer_name="默认设计师"):
         """创建图纸主函数"""
         type_ = params["type"]

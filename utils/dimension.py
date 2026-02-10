@@ -102,60 +102,75 @@ def dimension(geom=None,drawing_type=None):
     created = [None] * 18#设置标注对象，18个标注对象，每个标注对象对应一个标注线
 
     try:
+        # 提取geom字典中的变量，简化代码书写
+        y_U = geom["y_U"]
+        y_M = geom["y_M"]
+        y_L = geom["y_L"]
+        radius = geom["radius"]
+        center = geom["center"]
+        left_point = geom["left_point"]
+        right_point = geom["right_point"]
+        b = geom["b"]
+        a = geom["a"]
+        # 可选变量，使用get方法提供默认值
+        left_pointN = geom.get("left_pointN")
+        right_pointN = geom.get("right_pointN")
+        center2 = geom.get("center2")
+        
         RotationAngle = math.radians(0) # 旋转角默认设置为0
 #------------计算标注用到的点坐标-----------------#
         # A、B、C三个点分别代表小写字母a、b、c三条线段的下端点
-        A = APoint(-5, geom["y_U"])
-        Ar= APoint(5, geom["y_U"])
+        A = APoint(-5, y_U)
+        Ar= APoint(5, y_U)
         if drawing_type=="XJMJM" or drawing_type=="XPMJM":
-            B = APoint(-9, geom["y_M"])
-            C = APoint(-9, geom["y_L"])
-            Cr = APoint(9, geom["y_L"])
+            B = APoint(-9, y_M)
+            C = APoint(-9, y_L)
+            Cr = APoint(9, y_L)
         else:
-            B = APoint(-7, geom["y_M"])
-            C = APoint(-5, geom["y_L"])
+            B = APoint(-7, y_M)
+            C = APoint(-5, y_L)
         
         # D点表示底座中心最低点的位置
-        D = APoint(geom["center"].x, geom["y_L"])
-        arc_center_point = APoint(0, geom["radius"]) + geom["center"]# 上圆弧的中心点  
+        D = APoint(center.x, y_L)
+        arc_center_point = APoint(0, radius) + center# 上圆弧的中心点  
 
         
 #------------下面计算标注线的定位点-----------------#
-        if geom["radius"] <= 0:
-            DimLineLocation_up = geom["left_point"] + APoint(0, 1.5)
-            DimLineLocation_up2 = geom["left_point"] + APoint(0, 6)
+        if radius <= 0:
+            DimLineLocation_up = left_point + APoint(0, 1.5)
+            DimLineLocation_up2 = left_point + APoint(0, 6)
         else:
-            DimLineLocation_up = geom["center"] + APoint(0, geom["radius"]+1.5)
+            DimLineLocation_up = center + APoint(0, radius+1.5)
         #圆弧中心，到底座最低端参考高度的定位点
         #该定位点在模子右侧
-        if geom["right_point"].x >= 9:
-            DimLineLocation_D = APoint(6, 0) + geom["right_point"]
-        elif 0 < geom["right_point"].x < 9:
+        if right_point.x >= 9:
+            DimLineLocation_D = APoint(6, 0) + right_point
+        elif 0 < right_point.x < 9:
             DimLineLocation_D = APoint(15, 0)
 
         
         # --------上口径标注----------#
 
-        created[0] = acad.model.AddDimRotated(geom["left_point"], geom["right_point"], DimLineLocation_up, RotationAngle)
+        created[0] = acad.model.AddDimRotated(left_point, right_point, DimLineLocation_up, RotationAngle)
         created[0].TextOverride = "Φ<>"
-        if geom["radius"] <= 0:
+        if radius <= 0:
             #此时的口径标注使用半标注
             created[0].StyleName = "ZqStandard$0"
             #再增加一个外口径标注
-            L_point = geom["left_pointN"]
-            R_point = geom["right_pointN"] 
+            L_point = left_pointN
+            R_point = right_pointN 
             created[9] = acad.model.AddDimRotated(L_point, R_point, DimLineLocation_up2, RotationAngle)
-            created[9].TextOverride = "Φ<>"  
+            created[9].TextOverride = "Φ<>"
         #----------连接轴直径标注----------#
-        if not geom["b"]==0: 
+        if not b==0: 
             DimLineLocation_A = A + APoint(0, -4)
             created[10] = acad.model.AddDimRotated(Ar, A, DimLineLocation_A, RotationAngle)
-            created[10].TextOverride = "Φ<>"  
+            created[10].TextOverride = "Φ<>"
         # --------纵向线段标注----------#
-        DimLineLocation_thick = geom["left_point"] + APoint(-8, 0)#A点的标注线位置，从模子最左侧偏移-8mm，向上偏移0mm    
-        created[1] = acad.model.AddDimRotated(geom["left_point"], geom["left_point"] - APoint(0, geom["a"]), DimLineLocation_thick, math.radians(90))
+        DimLineLocation_thick = left_point + APoint(-8, 0)#A点的标注线位置，从模子最左侧偏移-8mm，向上偏移0mm    
+        created[1] = acad.model.AddDimRotated(left_point, left_point - APoint(0, a), DimLineLocation_thick, math.radians(90))
         DimLineLocation_B = B + APoint(-1, 0)
-        created[2] = acad.model.AddDimRotated(A, B, DimLineLocation_B, math.radians(90))       
+        created[2] = acad.model.AddDimRotated(A, B, DimLineLocation_B, math.radians(90))        
         if drawing_type=="XJMJM" or drawing_type=="XPMJM":
             DimLineLocation_C = C + APoint(-3, 0)
             DimLineLocation_Cr = Cr + APoint(0, -7)
@@ -175,8 +190,8 @@ def dimension(geom=None,drawing_type=None):
             created[3] = acad.model.AddDimRotated(B+APoint(0, -5), B, DimLineLocation_C, math.radians(90))                 
             created[13] = acad.model.AddDimRotated(B+APoint(0, -5),  C, DimLineLocation_C2, math.radians(90))            
             #插入多段线
-            ArrowPnt = APoint(6, (geom["y_L"]+geom["y_M"])/2)
-            BaselinePnt = APoint(10, (geom["y_L"]+geom["y_M"])/2-5)
+            ArrowPnt = APoint(6, (y_L+y_M)/2)
+            BaselinePnt = APoint(10, (y_L+y_M)/2-5)
             PntsArray = np.array([ArrowPnt, BaselinePnt])
             PntsArray = PntsArray.reshape(1, PntsArray.shape[0] * PntsArray.shape[1])[0]
             created[14] = acad.model.AddMLeader(PntsArray, 0)
@@ -189,11 +204,13 @@ def dimension(geom=None,drawing_type=None):
             created[14].TextString = "锥度1：10"
             if drawing_type=="JZM_KC" or drawing_type=="GPMJX":
                
-                ArrowPnt2 = APoint(geom["radius"],0)+geom["center"]
-                BaselinePnt2 = ArrowPnt2 + APoint(10, -20)
+                ArrowPnt2 = APoint(0,radius)+center
+                BaselinePnt2 = ArrowPnt2 + APoint(25, 15)
+                
                 PntsArray2 = np.array([ArrowPnt2, BaselinePnt2])
                 PntsArray2 = PntsArray2.reshape(1, PntsArray2.shape[0] * PntsArray2.shape[1])[0]
                 created[15] = acad.model.AddMLeader(PntsArray2, 0)
+                
                             # ArrowPnt 箭头位置；
                             # BaselinePnt 基线位置 ；
                             # 1 表示多重引线的索引号，为正整数。
@@ -201,8 +218,10 @@ def dimension(geom=None,drawing_type=None):
                 created[15].DoglegLength = 8
                 created[15].LandingGap = 3  # 基线端点到文字起点的距离
                 created[15].TextString = "开槽"
-                # --------下口径标注----------#（底座直径标注）
-            created[4] = acad.model.AddDimRotated(B+APoint(0, -5), APoint(7, geom["y_M"]-5), APoint(0, geom["y_L"]-14), RotationAngle)
+                  # 0=左侧, 1=右侧
+                            
+                # --------下------#（底座直径标注）
+            created[4] = acad.model.AddDimRotated(B+APoint(0, -5), APoint(7, y_M-5), APoint(0, y_L-14), RotationAngle)
               
             created[4].Update()
             created[4].TextOverride = "Φ<>"
@@ -211,39 +230,40 @@ def dimension(geom=None,drawing_type=None):
             created[4].ToleranceLowerLimit = -0.05
             created[4].TolerancePrecision = 3
             created[4].ToleranceHeightScale = 0.7
-                           
+                            
         #-------对应右侧定位点D,圆弧中点到模子最低点的参考高度
         
             created[7] = acad.model.AddDimRotated(arc_center_point, D, DimLineLocation_D, math.radians(90))
-            created[7].TextOverride = "(<>)"          
+            created[7].TextOverride = "(<>)"
         #-------------凹模额外加一个总高标注------------#
-        if geom["radius"] <0:
+        if radius <0:
   
-            created[8] = acad.model.AddDimRotated(geom["right_point"], D, DimLineLocation_D+APoint(5,0), math.radians(90))
+            created[8] = acad.model.AddDimRotated(right_point, D, DimLineLocation_D+APoint(5,0), math.radians(90))
             created[8].TextOverride = "(<>)"
        
         #---------圆弧半径标注----------#
         angle_rad = math.radians(80)
-        point_x = geom["center"].x + geom["radius"] * math.cos(angle_rad)
-        point_y = geom["center"].y + geom["radius"] * math.sin(angle_rad)
+        point_x = center.x + radius * math.cos(angle_rad)
+        point_y = center.y + radius * math.sin(angle_rad)
         ChordPoint = APoint(point_x, point_y)#ChordPoint - 弦点/圆弧上的点（标注的终点）,14 - 标注文字的位置偏移距离（14个单位）
-        if geom["radius"] > 0:
-            created[5] = acad.model.AddDimRadial(geom["center"], ChordPoint, 20)
+        if radius > 0:
+            created[5] = acad.model.AddDimRadial(center, ChordPoint, 20)
         else:
-            created[5] = acad.model.AddDimRadial(geom["center"], ChordPoint, 35)
+            created[5] = acad.model.AddDimRadial(center, ChordPoint, 35)
            
            
-        if geom["radius"] > 0:
+        if radius > 0:
             created[5].TextPosition = APoint(17, 17) + ChordPoint# 标注文字的位置（标注文字的中心位置）
         else:
             created[5].TextPosition = APoint(27, 27) + ChordPoint# 标注文字的位置（标注文字的中心位置）
         created[5].StyleName = "ZqStandard$4"# 设置标注样式
         created[5].Update()
+        
         angle_rad2 = math.radians(135)
-        point_x2 = geom["center2"].x + 4 * math.cos(angle_rad2)
-        point_y2 = geom["center2"].y + 4 * math.sin(angle_rad2)
+        point_x2 = center2.x + 4 * math.cos(angle_rad2)
+        point_y2 = center2.y + 4 * math.sin(angle_rad2)
         ChordPoint2 = APoint(point_x2, point_y2)
-        created[6] = acad.model.AddDimRadial(geom["center2"], ChordPoint2, 10)       
+        created[6] = acad.model.AddDimRadial(center2, ChordPoint2, 10)       
      
         created[6].TextPosition = APoint(7.5, -7.5) + ChordPoint2
 

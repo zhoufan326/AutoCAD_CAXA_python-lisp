@@ -208,8 +208,8 @@ if __name__ == "__main__":
         {
             "radius": -results["镜片R值"],
             "chord_length": results["基准模改丸片口径"],
-            "drawing_type": "JZM", "designer_name": "周凡", "b": 3
-        },
+            "drawing_type": "JZM_KC", "designer_name": "周凡", "b": 3
+        },#注意一下，这里使用的是JZM_KC，而不是JZM，半径与镜面相反
         {
             "radius": results["高速抛光修盘基模R值"],
             "chord_length": results["高速抛光修盘基模口径"],

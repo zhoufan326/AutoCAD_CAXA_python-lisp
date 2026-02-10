@@ -8,7 +8,7 @@ GROUPS = [
     ("下摆机抛光基模", "XPMJM", 6, False),
     ("下摆机精磨基模", "XJMJM", 6, False),
     ("基准模压聚氨酯", "JZM", 3, False),
-    ("基准模改丸片", "JZM", 3, True),
+    ("基准模改丸片", "JZM_KC", 3, True),
     ("高速抛光修盘基模", "GPMXJ", 6, False),
     ("高速抛光基模修盘", "GPMJX", 3, False)
 ]

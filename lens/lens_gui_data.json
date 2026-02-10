@@ -1,0 +1,58 @@
+{
+  "lens_selection": {
+    "1": true,
+    "2": true,
+    "3": true
+  },
+  "lens_data": {
+    "lens1": {
+      "radius1": "60.46",
+      "radius1_tolerance": "",
+      "sagitta1": "",
+      "sagitta1_tolerance": "",
+      "radius2": "-585.8",
+      "radius2_tolerance": "",
+      "sagitta2": "",
+      "sagitta2_tolerance": "",
+      "center_thickness": "2.8",
+      "thickness_tolerance": "0.02",
+      "outer_diameter": "19.2",
+      "upper_tolerance": "0",
+      "lower_tolerance": "0.05"
+    },
+    "lens2": {
+      "radius1": "60.46",
+      "radius1_tolerance": "0.041",
+      "sagitta1": "",
+      "sagitta1_tolerance": "",
+      "radius2": "-585.8",
+      "radius2_tolerance": "3.835",
+      "sagitta2": "",
+      "sagitta2_tolerance": "",
+      "center_thickness": "2.5",
+      "thickness_tolerance": "0.02",
+      "outer_diameter": "19.2",
+      "upper_tolerance": "",
+      "lower_tolerance": ""
+    },
+    "lens3": {
+      "radius1": "60.46",
+      "radius1_tolerance": "",
+      "sagitta1": "",
+      "sagitta1_tolerance": "",
+      "radius2": "-585.8",
+      "radius2_tolerance": "",
+      "sagitta2": "",
+      "sagitta2_tolerance": "",
+      "center_thickness": "2.5",
+      "thickness_tolerance": "0.02",
+      "outer_diameter": "18",
+      "upper_tolerance": "-0.006",
+      "lower_tolerance": "0.02"
+    }
+  },
+  "text_height": "1",
+  "sync_params": true,
+  "sync_thickness_tolerance_params": true,
+  "sync_center_thickness_params": true
+}

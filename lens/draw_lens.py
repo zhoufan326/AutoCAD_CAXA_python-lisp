@@ -99,7 +99,7 @@ class DrawLens:
         
         
         # 开始绘制图形
-        set_layer("轮廓线")
+        retry(lambda: set_layer("轮廓线"), "设置图层")
         time.sleep(1.5)  # 等待图层切换完成
         arc1 = self.acad.model.AddArc(C1, abs(R1), start_angle1, end_angle1)
         arc2 = self.acad.model.AddArc(C2, abs(R2), start_angle2, end_angle2)
@@ -147,14 +147,14 @@ class DrawLens:
         )
         time.sleep(0.5)  # 等待视图更新完成
         
-        set_layer("剖面线")
+        retry(lambda: set_layer("剖面线"), "设置图层")
         
         retry(
             lambda: create_hatch(self.acad, base1.x + Tc/2, base1.y+D/4, pattern="GOST_GLASS", scale=hatch_scale),
             "创建填充1"
         )
                 # 绘制中心线
-        set_layer("中心线")
+        retry(lambda: set_layer("中心线"), "设置图层")
         # 计算延长长度
         extension = D / 3
         # 计算中心线的起点和终点
@@ -165,7 +165,7 @@ class DrawLens:
         center_line.LinetypeScale = 0.1
         time.sleep(0.3)  # 等待中心线创建完成
         #------------下面开始创建标注-----------------#
-        set_layer("标注线")
+        retry(lambda: set_layer("标注线"), "设置图层")
         created = [None] * 10
         # 不设置全局标注样式，避免影响半径标注的特定样式
         # 每个标注创建后单独设置样式

@@ -177,7 +177,7 @@ class DrawLens:
                 C1.y + abs(R1) * math.sin(angle_rad1)
             )
             # 第三个参数是标注线长度（数值），不是点坐标
-            created[2] = self.acad.model.AddDimRadial(C1, chord_point, D/30)  # *** DIMENSION LINE LENGTH: R1 RADIUS DIMENSION ***
+            created[2] = self.acad.model.AddDimRadial(C1, chord_point, D/30)
             created[2].StyleName = f"{dim_style_name}$4"  # 使用主样式名称加上半径标注子样式后缀
             created[2].Update()  # 设置样式后调用Update()
             radius1_tolerance = parameter.get("radius1_tolerance")
@@ -194,7 +194,7 @@ class DrawLens:
                 C2.x + abs(R2) * math.cos(angle_rad2),
                 C2.y + abs(R2) * math.sin(angle_rad2)
             )
-            created[3] = self.acad.model.AddDimRadial(C2, chord_point, D/30)  # *** DIMENSION LINE LENGTH: R2 RADIUS DIMENSION ***
+            created[3] = self.acad.model.AddDimRadial(C2, chord_point, D/30)
             created[3].StyleName = f"{dim_style_name}$4"  # 使用主样式名称加上半径标注子样式后缀
             created[3].Update()
             # 统一与第一面相同的文本位置偏移量逻辑
@@ -215,14 +215,14 @@ class DrawLens:
             # 在中心线两端上方添加文字S1和S2
             
             # 计算文字位置（在中心线两端上方1.5个单位）
-            text_s1_point = APoint(line_start.x+D/6, line_start.y + D/20)  # *** TEXT POSITION: S1 LABEL ***
-            text_s2_point = APoint(line_end.x-D/6, line_end.y + D/20)  # *** TEXT POSITION: S2 LABEL ***
+            text_s1_point = APoint(line_start.x+D/6, line_start.y + D/20)
+            text_s2_point = APoint(line_end.x-D/6, line_end.y + D/20)
             # 添加文字S1和S2，使用动态计算的文字大小
             text_s1 = self.acad.model.AddText("S1", text_s1_point, text_height)
             text_s2 = self.acad.model.AddText("S2", text_s2_point, text_height)
             
             # 中心厚度标注
-            dim_line_loc = APoint((base1.x + base2.x)/2, -D/2 - D/5)  # *** DIMENSION LINE LOCATION: CENTER THICKNESS ***
+            dim_line_loc = APoint((base1.x + base2.x)/2, -D/2 - D/5)
             created[1] = self.acad.model.AddDimRotated(base1, base2, dim_line_loc, 0)                  
        
             thickness_tolerance = parameter.get("thickness_tolerance")
@@ -234,12 +234,12 @@ class DrawLens:
                 created[1].TextOverride = "<>"
             
             # Te参考值
-            dim_line_loc = APoint((up1.x + up2.x)/2, up1.y + D/5)  # *** DIMENSION LINE LOCATION: Te REFERENCE VALUE ***
+            dim_line_loc = APoint((up1.x + up2.x)/2, up1.y + D/5)
             created[4] = self.acad.model.AddDimRotated(up1, up2, dim_line_loc, 0)
             created[4].TextOverride = "(<>)"
             
             # 镜片外径标注
-            dim_line_loc = APoint(up1.x - 0.8*D, (up1.y + down1.y)/2)  # *** DIMENSION LINE LOCATION: LENS OUTER DIAMETER ***
+            dim_line_loc = APoint(up1.x - 0.8*D, (up1.y + down1.y)/2)
             created[5] = self.acad.model.AddDimRotated(up1, down1, dim_line_loc, math.pi/2)
 
             # 检查是否存在上下公差，存在则显示，不存在则不显示
@@ -262,7 +262,7 @@ class DrawLens:
 
             #如果矢高1存在，则创建矢高标注   
             if parameter["sagitta1"] is not None:
-                created[6] = self.acad.model.AddDimRotated(base1, down1, APoint(down1.x/2, down1.y-D/2 -D/5), math.pi/2)  # *** DIMENSION LINE LOCATION: SAGITTA1 (S1) ***
+                created[6] = self.acad.model.AddDimRotated(base1, down1, APoint(down1.x/2, down1.y-D/2 -D/5), math.pi/2)
                 # 获取第一面矢高公差
                 sagitta1_tolerance = parameter.get("sagitta1_tolerance")
                 if sagitta1_tolerance is not None:
@@ -272,7 +272,7 @@ class DrawLens:
                     created[6].TextOverride = "<>"
              #如果矢高2存在，则创建矢高标注   
             if parameter["sagitta2"] is not None:
-                created[7] = self.acad.model.AddDimRotated(base2, down2, APoint(down2.x/2, down2.y-D/2 -D/5), math.pi/2)  # *** DIMENSION LINE LOCATION: SAGITTA2 (S2) ***
+                created[7] = self.acad.model.AddDimRotated(base2, down2, APoint(down2.x/2, down2.y-D/2 -D/5), math.pi/2)
                 # 获取第二面矢高公差
                 sagitta2_tolerance = parameter.get("sagitta2_tolerance")
                 if sagitta2_tolerance is not None:

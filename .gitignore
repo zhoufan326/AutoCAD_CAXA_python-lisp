@@ -5,6 +5,10 @@ __pycache__/
 venv/
 env/
 
+# Temporary files
+ago'
+ago' -n 20
+
 # AutoCAD
 *.bak
 *.dwl

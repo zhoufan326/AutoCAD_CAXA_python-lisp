@@ -9,7 +9,8 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, PROJECT_ROOT)
 
 from pyautocad import APoint, Autocad
-from utils import set_layer, create_hatch, safe_acad_operation
+from utils import set_layer, create_hatch, retry
+from utils.scale_select import get_dimension_params
 
 # 常量定义
 TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "新图样.dwt")
@@ -25,15 +26,14 @@ class DrawLens:
             self.acad = Autocad(create_if_not_exists=True)
             print("正在连接AutoCAD...")
             
-            # 使用safe_acad_operation检查连接稳定性
+            # 使用retry检查连接稳定性
             try:
-                app_name = safe_acad_operation(
-                    lambda: self.acad.app.Name,
-                    operation_name="AutoCAD连接检查",
-                    max_retries=5,
-                    retry_delay=1.0,
-                    backoff=1.5
-                )
+                app_name = retry(
+                lambda: self.acad.app.Name,
+                operation_name="AutoCAD连接检查",
+                max_retries=5,
+                initial_delay=1.0
+            )
                 print(f"✓ AutoCAD连接稳定 (版本: {app_name})")
                 # 连接稳定后，等待一小段时间确保完全初始化
                 time.sleep(1.0)
@@ -46,7 +46,7 @@ class DrawLens:
             print("使用外部提供的AutoCAD连接")
 
         if template_path and os.path.exists(template_path):
-            safe_acad_operation(
+            retry(
                 lambda: self.acad.app.Documents.Add(template_path),
                 "加载模板"
             )
@@ -94,8 +94,13 @@ class DrawLens:
         start_angle2 = -theta2 if R2 < 0 else math.pi - theta2
         end_angle2 = +theta2 if R2 < 0 else math.pi + theta2
         
+        # 根据镜片外径D动态计算所有相关参数
+        text_height, hatch_scale, dim_style_name = get_dimension_params(D)
+        
+        
         # 开始绘制图形
         set_layer("轮廓线")
+        time.sleep(1.5)  # 等待图层切换完成
         arc1 = self.acad.model.AddArc(C1, abs(R1), start_angle1, end_angle1)
         arc2 = self.acad.model.AddArc(C2, abs(R2), start_angle2, end_angle2)
         
@@ -134,21 +139,33 @@ class DrawLens:
         self.acad.model.AddLine(d1, down1)
         self.acad.model.AddLine(d2, down2)
         
-        safe_acad_operation(
+        time.sleep(0.3)  # 等待密集对象创建完成
+        
+        retry(
             lambda: self.acad.doc.SendCommand("_.zoom _e "),
             "缩放到范围"
         )
+        time.sleep(0.5)  # 等待视图更新完成
         
         set_layer("剖面线")
-        internal_point = APoint(base1.x + Tc/2, base1.y)
-        scale = 0.25 if D < 40 else 0.5 if D < 100 else 1
-        safe_acad_operation(
-            lambda: create_hatch(self.acad, internal_point.x, internal_point.y, pattern="GOST_GLASS", scale=scale),
-            "创建填充"
-        )
         
-        set_layer("标注线")
+        retry(
+            lambda: create_hatch(self.acad, base1.x + Tc/2, base1.y+D/4, pattern="GOST_GLASS", scale=hatch_scale),
+            "创建填充1"
+        )
+                # 绘制中心线
+        set_layer("中心线")
+        # 计算延长长度
+        extension = D / 3
+        # 计算中心线的起点和终点
+        line_start = APoint(base1.x - extension, base1.y)
+        line_end = APoint(base2.x + extension, base2.y)
+        # 绘制中心线
+        center_line = self.acad.model.AddLine(line_start, line_end)
+        center_line.LinetypeScale = 0.1
+        time.sleep(0.3)  # 等待中心线创建完成
         #------------下面开始创建标注-----------------#
+        set_layer("标注线")
         created = [None] * 10
         # 不设置全局标注样式，避免影响半径标注的特定样式
         # 每个标注创建后单独设置样式
@@ -160,8 +177,8 @@ class DrawLens:
                 C1.y + abs(R1) * math.sin(angle_rad1)
             )
             # 第三个参数是标注线长度（数值），不是点坐标
-            created[2] = self.acad.model.AddDimRadial(C1, chord_point, 3)
-            created[2].StyleName = "len$4"
+            created[2] = self.acad.model.AddDimRadial(C1, chord_point, D/30)  # *** DIMENSION LINE LENGTH: R1 RADIUS DIMENSION ***
+            created[2].StyleName = f"{dim_style_name}$4"  # 使用主样式名称加上半径标注子样式后缀
             created[2].Update()  # 设置样式后调用Update()
             radius1_tolerance = parameter.get("radius1_tolerance")
             if radius1_tolerance is not None:
@@ -177,10 +194,9 @@ class DrawLens:
                 C2.x + abs(R2) * math.cos(angle_rad2),
                 C2.y + abs(R2) * math.sin(angle_rad2)
             )
-            created[3] = self.acad.model.AddDimRadial(C2, chord_point, 2)  
-            created[3].StyleName = "len$4"
-            created[3].Update()  # 设置样式后调用Update()
-            
+            created[3] = self.acad.model.AddDimRadial(C2, chord_point, D/30)  # *** DIMENSION LINE LENGTH: R2 RADIUS DIMENSION ***
+            created[3].StyleName = f"{dim_style_name}$4"  # 使用主样式名称加上半径标注子样式后缀
+            created[3].Update()
             # 统一与第一面相同的文本位置偏移量逻辑
             
             
@@ -191,13 +207,24 @@ class DrawLens:
             else:
                 created[3].TextOverride = "<>"
         #-------剩下的内容设置全局的标注样式防止影响到半径标注的样式--------#
-        self.acad.ActiveDocument.ActiveDimStyle = self.acad.ActiveDocument.DimStyles.Item("len")
-        self.acad.ActiveDocument.SetVariable("DIMTXT", parameter.get("text_height", 2.5))
+        dim_style= self.acad.ActiveDocument.DimStyles.Item(dim_style_name)
+        #获取标注变量
+        self.acad.ActiveDocument.ActiveDimStyle = dim_style#激活
+       
         try:
+            # 在中心线两端上方添加文字S1和S2
+            
+            # 计算文字位置（在中心线两端上方1.5个单位）
+            text_s1_point = APoint(line_start.x+D/6, line_start.y + D/20)  # *** TEXT POSITION: S1 LABEL ***
+            text_s2_point = APoint(line_end.x-D/6, line_end.y + D/20)  # *** TEXT POSITION: S2 LABEL ***
+            # 添加文字S1和S2，使用动态计算的文字大小
+            text_s1 = self.acad.model.AddText("S1", text_s1_point, text_height)
+            text_s2 = self.acad.model.AddText("S2", text_s2_point, text_height)
+            
             # 中心厚度标注
-            dim_line_loc = APoint((base1.x + base2.x)/2, -D/2 - 3)
-            created[1] = self.acad.model.AddDimRotated(base1, base2, dim_line_loc, 0)
-          
+            dim_line_loc = APoint((base1.x + base2.x)/2, -D/2 - D/5)  # *** DIMENSION LINE LOCATION: CENTER THICKNESS ***
+            created[1] = self.acad.model.AddDimRotated(base1, base2, dim_line_loc, 0)                  
+       
             thickness_tolerance = parameter.get("thickness_tolerance")
             
             if thickness_tolerance is not None:
@@ -207,21 +234,21 @@ class DrawLens:
                 created[1].TextOverride = "<>"
             
             # Te参考值
-            dim_line_loc = APoint((up1.x + up2.x)/2, up1.y + 2)
+            dim_line_loc = APoint((up1.x + up2.x)/2, up1.y + D/5)  # *** DIMENSION LINE LOCATION: Te REFERENCE VALUE ***
             created[4] = self.acad.model.AddDimRotated(up1, up2, dim_line_loc, 0)
             created[4].TextOverride = "(<>)"
             
             # 镜片外径标注
-            dim_line_loc = APoint(up1.x - 3, (up1.y + down1.y)/2)
+            dim_line_loc = APoint(up1.x - 0.8*D, (up1.y + down1.y)/2)  # *** DIMENSION LINE LOCATION: LENS OUTER DIAMETER ***
             created[5] = self.acad.model.AddDimRotated(up1, down1, dim_line_loc, math.pi/2)
-            created[5].TextPosition = APoint(up1.x - D/2, base1.y)
+
             # 检查是否存在上下公差，存在则显示，不存在则不显示
             upper_tolerance = parameter.get("upper_tolerance")
             lower_tolerance = parameter.get("lower_tolerance")
             
             if upper_tolerance is not None and lower_tolerance is not None:
                 # 两个公差都存在，使用AutoCAD内置公差系统显示
-                created[5].TextOverride = "Φ<>"
+                created[5].TextOverride = "%%C<>"
                 created[5].ToleranceDisplay = 2  # 启用公差显示
                 created[5].ToleranceUpperLimit = upper_tolerance
                 created[5].ToleranceLowerLimit = lower_tolerance
@@ -235,7 +262,7 @@ class DrawLens:
 
             #如果矢高1存在，则创建矢高标注   
             if parameter["sagitta1"] is not None:
-                created[6] = self.acad.model.AddDimRotated(base1, up1, APoint(up1.x/2, up1.y+D/2 +10), math.pi/2)
+                created[6] = self.acad.model.AddDimRotated(base1, down1, APoint(down1.x/2, down1.y-D/2 -D/5), math.pi/2)  # *** DIMENSION LINE LOCATION: SAGITTA1 (S1) ***
                 # 获取第一面矢高公差
                 sagitta1_tolerance = parameter.get("sagitta1_tolerance")
                 if sagitta1_tolerance is not None:
@@ -245,7 +272,7 @@ class DrawLens:
                     created[6].TextOverride = "<>"
              #如果矢高2存在，则创建矢高标注   
             if parameter["sagitta2"] is not None:
-                created[7] = self.acad.model.AddDimRotated(base2, down2, APoint(down2.x/2, down2.y-D/2 -10), math.pi/2)
+                created[7] = self.acad.model.AddDimRotated(base2, down2, APoint(down2.x/2, down2.y-D/2 -D/5), math.pi/2)  # *** DIMENSION LINE LOCATION: SAGITTA2 (S2) ***
                 # 获取第二面矢高公差
                 sagitta2_tolerance = parameter.get("sagitta2_tolerance")
                 if sagitta2_tolerance is not None:

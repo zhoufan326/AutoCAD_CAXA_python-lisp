@@ -18,6 +18,7 @@ def get_dimension_params(D):
     # 直接使用公式计算text_height和hatch_scale，不使用选择语句
     text_height = D / 10.0        # S1、S2标签文字高度 = D/10
     hatch_scale = D / 50.0         # 剖面线比例 = D/50
+    linetype_scale = D / 200.0     # 中心线比例 = D/200
     
     # 保持标注样式名称的选择逻辑
     if D < 10:
@@ -41,4 +42,4 @@ def get_dimension_params(D):
     else:
         dim_style_name = "35-1：10"
     
-    return text_height, hatch_scale, dim_style_name
+    return text_height, hatch_scale, dim_style_name, linetype_scale

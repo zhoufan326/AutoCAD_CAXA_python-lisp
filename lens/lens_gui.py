@@ -34,10 +34,7 @@ class LensParamsGUI:
         ("lower_tolerance", "外径下偏差 (-mm):", ""),
     ]
     
-    # 标注设置字段
-    DIMENSION_FIELDS = [
-        ("text_height", "标注文字高度 (mm):", "2.5"),
-    ]
+    
     
     # 合并所有参数字段定义
     ALL_FIELDS = FIRST_SURFACE_FIELDS + SECOND_SURFACE_FIELDS + THICKNESS_FIELDS + DIAMETER_FIELDS
@@ -156,11 +153,9 @@ class LensParamsGUI:
                  text="(镜片2与3的中心厚度保持同步)", 
                  font=("", 8)).grid(row=0, column=1, sticky="w", padx=5)
         
-        # 标注文字高度
-        ttk.Label(base_frame, text="标注文字高度 (mm):").grid(row=4, column=0, sticky="e", padx=5)
-        self.text_height = ttk.Entry(base_frame, width=15)
-        self.text_height.insert(0, "2.5")
-        self.text_height.grid(row=4, column=1, sticky="e", padx=5)
+
+
+        
         
         # 按钮
         btn_frame = ttk.Frame(main)
@@ -260,13 +255,6 @@ class LensParamsGUI:
         # 检查外径是否有效
         if params.get("outer_diameter", 0) <= 0:
             return None
-        
-        # 添加全局参数
-        try:
-            text_height_value = self.text_height.get().strip()
-            params["text_height"] = float(text_height_value) if text_height_value else 2.5
-        except ValueError:
-            params["text_height"] = 2.5  # 使用默认值
         
         return params
     
@@ -433,8 +421,6 @@ class LensParamsGUI:
     
     def start(self):
         """开始绘图"""
-
-        
         # 使用默认起始点坐标(0,0)
         base_x = 0.0
         base_y = 0.0
@@ -459,12 +445,10 @@ class LensParamsGUI:
                     current_x += params["outer_diameter"] + spacing
             except ValueError as e:
                 messagebox.showerror("参数错误", str(e))
-
                 return
         
         if not self.params_list:
             messagebox.showwarning("警告", "没有有效的镜片参数")
-
             return
         
         # 调用绘图函数
@@ -472,16 +456,13 @@ class LensParamsGUI:
             from draw_lens import draw_multiple_lenses
             
             if draw_multiple_lenses(self.params_list):
-
                 # 绘图完成后保存数据
                 self.save_data()
             else:
-
                 messagebox.showerror("错误", "绘图失败")
                 
         except ImportError:
             messagebox.showerror("导入错误", "无法导入绘图模块")
-
         except Exception as e:
             messagebox.showerror("错误", f"绘图错误: {str(e)}")
 
@@ -511,7 +492,7 @@ class LensParamsGUI:
             data = {
                 "lens_selection": self.lens_selection,
                 "lens_data": {},
-                "text_height": self.text_height.get(),
+
                 "sync_params": self.sync_var.get(),
                 "sync_thickness_tolerance_params": self.sync_thickness_tolerance_var.get(),
                 "sync_center_thickness_params": self.sync_center_thickness_var.get()
@@ -541,11 +522,9 @@ class LensParamsGUI:
             with open(self.DATA_FILE, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             
-            # 加载基本设置
-            for widget_attr, data_key in [(self.text_height, "text_height")]:
-                if data_key in data:
-                    widget_attr.delete(0, tk.END)
-                    widget_attr.insert(0, data[data_key])
+
+
+                
             
             # 加载镜片选择状态
             if "lens_selection" in data:

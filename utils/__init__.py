@@ -1,7 +1,6 @@
 # Utils module initialization
 
 from .layer import set_layer
-from .dimension import dimension, date_name
 from .hatch import create_hatch
 from .block import insert_block
 from .safe_acad_operation import safe_acad_operation
@@ -12,8 +11,6 @@ __all__ = [
     
     'set_layer',
     'set_acad_instance',
-    'dimension',
-    'date_name',
     'create_hatch',
     'insert_block',
     'safe_acad_operation',

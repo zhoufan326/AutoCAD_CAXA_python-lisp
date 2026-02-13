@@ -3,14 +3,22 @@ import math
 import os
 import time
 from typing import Optional
-from draw import SwingMachineToolingCalculator
+# 使用绝对导入替代相对导入
+from molds.Tool_calculation import SwingMachineToolingCalculator
 from pyautocad import APoint, aDouble, Autocad
 from utils import set_layer, create_hatch, insert_block, date_name,safe_acad_operation,initial_connection
 # 常量定义
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# 获取当前文件所在目录
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+# 根目录是当前目录的父目录（因为molds与utils平级）
+BASE_DIR = os.path.dirname(CURRENT_DIR)
 DEFAULT_TEMPLATE_PATH = os.path.join(BASE_DIR, "新图样.dwt")
 DEFAULT_SAVE_DIR = os.path.join(BASE_DIR, "output")
-EXCEL_PATH = os.path.join(BASE_DIR, "draw", "口径常数.xlsx")
+EXCEL_PATH = os.path.join(CURRENT_DIR, "口径常数.xlsx")
+
+# drawing_type常量定义（使用中文名称）
+DRAWING_TYPE_JINGMO = "精磨丸片"
+DRAWING_TYPE_XIUPAN = "修盘丸片"
 
 class WP:
       # ==================== 创建 AutoCAD 连接 ====================
@@ -53,12 +61,14 @@ class WP:
             traceback.print_exc()
             return None
            
-    def main(self,parameter,designer_name: str = "默认设计师"):
+    def main(self, parameter):
         """主函数"""
         set_layer("轮廓线")
-        diameter=parameter["diameter"]
-        radius=parameter["radius"]
-        base=parameter["base"]
+        diameter = parameter["diameter"]
+        radius = parameter["radius"]
+        base = parameter["base"]
+        designer_name = parameter.get("designer_name", "默认设计师")
+        drawing_type = parameter.get("drawing_type", DRAWING_TYPE_JINGMO)
         radius_sign = "+" if radius >= 0 else "-"
         #计算矢高
         chord = diameter
@@ -181,9 +191,13 @@ class WP:
         insertionPnt2 = APoint(-187, -110)
         
         base_path = os.path.join(BASE_DIR, "blocks")
+        
+        # 直接使用drawing_type作为图块名称（因为drawing_type现在是中文名称："精磨丸片"或"修盘丸片"）
+        wp_block_name = f"{drawing_type}.dwg"
+            
         block_configs = [
         (insertionPnt, os.path.join(base_path, "A4图框.dwg")),
-        # (insertionPnt2, os.path.join(base_path, f"WP.dwg")),
+        (insertionPnt2, os.path.join(base_path, wp_block_name)),
         (insertionPnt2, os.path.join(base_path, f"{designer_name}.dwg"))
             ]       
         for i, config in enumerate(block_configs, 1):
@@ -191,6 +205,60 @@ class WP:
                 insert_block(self.acad, *config)
                 time.sleep(1.5)
         return arc, pline1, pline2, pline3
+
+def run_wp_from_params(r_value, d_value, selected_groups=None):
+    """从参数运行WP绘图任务
+    
+    Args:
+        r_value: 镜片R值
+        d_value: 毛坯直径
+        selected_groups: 选中的图形组索引列表（可选）
+    """
+    R = float(r_value)
+    D = float(d_value)
+    
+    # 计算参数
+    calculator = SwingMachineToolingCalculator(
+        R=R, blank_D=D, polyurethane_thickness=0.3,
+        diamond_pellet_thickness=3, delta_arc=2
+    )
+    results = calculator.calculate_all(EXCEL_PATH)
+    
+    # 定义所有WP绘图参数
+    all_params = [
+        {
+          "radius": results["下摆机精磨基模R值"],
+          "diameter": results["下摆机精磨基模口径"],
+          "drawing_type": DRAWING_TYPE_JINGMO, "designer_name": "周凡"
+        },
+        {
+          "radius": results["镜片R值"],
+          "diameter": results["基准模口径"],
+          "drawing_type": DRAWING_TYPE_XIUPAN, "designer_name": "周凡"
+        }
+    ]
+    
+    # 过滤选中的图形组
+    params_list = all_params if not selected_groups else [all_params[i] for i in selected_groups]
+    
+    # 批量绘图
+    for i, params in enumerate(params_list, 1):
+        print(f"\n第{i}/{len(params_list)}: {params['drawing_type']}")
+        
+        wp = None
+        try:
+                wp = WP()
+                params["base"] = APoint(0, 0)
+                wp.main(params)
+                wp.save_drawing(params)
+        except Exception as e:
+            print(f"失败: {e}")
+        finally:
+            if wp:
+                wp.acad = None
+            if i < len(params_list):
+                time.sleep(2.0)
+
 if __name__ == "__main__":
     designer_name = "周凡"
                 # 创建计算器实例
@@ -221,10 +289,18 @@ if __name__ == "__main__":
     ]
 
     try:
+        # 为params_list添加drawing_type参数
         for index, params in enumerate(params_list, 1):
             try:
+                # 根据索引设置drawing_type
+                if index == 1:
+                    params["drawing_type"] = DRAWING_TYPE_JINGMO
+                else:
+                    params["drawing_type"] = DRAWING_TYPE_XIUPAN
+                    
                 wp = WP()
-                wp.main(params, designer_name=designer_name)
+                params["designer_name"] = designer_name
+                wp.main(params)
                 wp.save_drawing(params)
                 print(f"✓ 第 {index} 个WP图形创建成功")
                 wp.acad = None

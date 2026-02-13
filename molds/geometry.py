@@ -46,7 +46,10 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
     
     else: 
     #半径小于0的情况
-        a=a+1.5#凹模稍微加厚一点
+        # 只有当R≥11且Φ≥18时，凹模才加厚1.5mm，否则保持原值
+        if abs(radius) >= 11 and chord_length >= 18:
+            a=a+1.5#凹模稍微加厚一点
+        # 否则保持a的原值不变
 
 
         center = chord_center + APoint(0, chord_to_center)
@@ -58,17 +61,16 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
         half_chordN=half_chord+1
         #计算下方圆弧的半径
         theta_big=math.atan(half_chordN/chord_to_center2)
+        #半径2根据弦心距和半弦长计算
         radius2=half_chordN/math.sin(theta_big)
 
         theta_small=math.asin(5/radius2)
         #小圆心角对应的弦心距
         chord_to_center3=radius2*math.cos(theta_small)                                               
-        if abs(radius)<11 or chord_length<20:
-            y_U = chord_y - a#凹面圆弧底座连接轴的上横线纵坐标
-            y_M = y_U - b #凹面圆弧底座连接轴的下横线纵坐标
-        else:
-            y_U =center.y - chord_to_center3
-            y_M = y_U - b
+
+    
+        y_U =center.y - chord_to_center3
+        y_M = y_U - b
             #凹面圆弧端点角度
         left_angle = 270 - half_theta_deg
         right_angle = 270 + half_theta_deg  

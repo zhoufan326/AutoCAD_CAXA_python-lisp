@@ -6,17 +6,26 @@ import sys
 from typing import Dict, Optional, Any
 from pyautocad import Autocad, APoint
 
-from draw import calculate_geometry, DrawingOperations
-from utils import insert_block, set_layer, dimension, date_name, create_hatch, generate_filename, safe_acad_operation
+# 添加项目根目录到路径
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
+
+# 从molds包导入模块
+from molds import calculate_geometry, DrawingOperations, SwingMachineToolingCalculator
+# 导入utils模块
+from utils import insert_block, set_layer, create_hatch, generate_filename, safe_acad_operation
+# 使用绝对导入替代相对导入
+from molds.dimension import dimension, date_name
 
 # 常量定义
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_TEMPLATE_PATH = os.path.join(BASE_DIR, "新图样.dwt")
-DEFAULT_SAVE_DIR = os.path.join(BASE_DIR, "output")
-EXCEL_PATH = os.path.join(BASE_DIR, "draw", "口径常数.xlsx")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # draw文件夹
+PROJECT_ROOT = os.path.dirname(BASE_DIR)  # 项目根目录
+DEFAULT_TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "新图样.dwt")  # 模板文件在根目录
+DEFAULT_SAVE_DIR = os.path.join(PROJECT_ROOT, "output")  # 输出目录在根目录
+EXCEL_PATH = os.path.join(BASE_DIR, "口径常数.xlsx")  # Excel文件在draw文件夹
 
 # 默认几何参数
-DEFAULT_PARAM_A = 3
+DEFAULT_PARAM_A = 3  # 变量a的默认值定义
 DEFAULT_PARAM_B = 6
 DEFAULT_PARAM_C = 25
 
@@ -42,8 +51,7 @@ class AutoCadDrawing:
                         time.sleep(1.5)
                         continue
 
-        # 初始化绘图操作对象
-        self.drawing_ops = DrawingOperations(self.acad, set_layer)
+        
 
     def save_drawing(self, save_directory: str = DEFAULT_SAVE_DIR) -> Optional[str]:
         """保存图形到指定目录"""
@@ -70,15 +78,30 @@ class AutoCadDrawing:
                     break
     
     def create_drawing(self, radius: float, chord_length: float, a: float = DEFAULT_PARAM_A, 
-                      b: float = DEFAULT_PARAM_B, c: float = DEFAULT_PARAM_C, drawing_type: str = "XJMJM", designer_name: str = "戴磊") -> Dict[str, Any]:
+                      b: float = DEFAULT_PARAM_B, c: float = DEFAULT_PARAM_C, drawing_type: str = "XJMJM", designer_name: str = "戴磊", draw_bottom_part: bool = True) -> Dict[str, Any]:
+        """绘制图形
+        
+        Args:
+            radius: 半径
+            chord_length: 弦长
+            a: 参数a
+            b: 参数b
+            c: 参数c
+            drawing_type: 绘图类型
+            designer_name: 设计者名称
+            draw_bottom_part: 是否绘制底座部分（默认：True，仅GUI模式使用）
+        """
         
         # 1. 计算几何参数
         geometry = calculate_geometry(radius, chord_length, a, b, c)
         
-        # 2. 绘图
+        # 2. 初始化绘图操作对象
+        self.drawing_ops = DrawingOperations(self.acad, set_layer, geometry, drawing_type, draw_bottom_part=draw_bottom_part)
+        
+        # 3. 绘图
         print("开始绘制视图...")
         safe_acad_operation(
-            lambda: self.drawing_ops.draw_views(geometry, drawing_type=drawing_type),
+            lambda: self.drawing_ops.draw_views(),
             "绘制视图",
             max_retries=3,
             retry_delay=1.0
@@ -118,7 +141,7 @@ class AutoCadDrawing:
         insertionPnt = APoint(-187, -110)
         insertionPnt2 = APoint(-187, -110)
         
-        base_path = os.path.join(BASE_DIR, "blocks")
+        base_path = os.path.join(PROJECT_ROOT, "blocks")
         block_configs = [
             (insertionPnt, os.path.join(base_path, "A4图框.dwg")),
             (insertionPnt2, os.path.join(base_path, f"{drawing_type}.dwg")),
@@ -162,24 +185,17 @@ class AutoCadDrawing:
         """关闭AutoCAD连接"""
         del self.acad
 
-if __name__ == "__main__":
-    import sys
-    from draw import SwingMachineToolingCalculator
+def run_drawing_from_params(r_value, d_value, selected_groups=None, draw_bottom_part=True):
+    """从参数运行绘图任务
     
-    # 从命令行参数获取输入
-    if len(sys.argv) < 3:
-        print("用法: python main.py R值 直径 [--groups 索引列表]")
-        sys.exit(1)
-    
-    R = float(sys.argv[1])
-    D = float(sys.argv[2])
-    
-    # 解析图形组选择
-    selected_groups = []
-    if "--groups" in sys.argv:
-        idx = sys.argv.index("--groups")
-        if idx + 1 < len(sys.argv):
-            selected_groups = [int(x) for x in sys.argv[idx+1].split(",") if x.isdigit()]
+    Args:
+        r_value: 镜片R值
+        d_value: 毛坯直径
+        selected_groups: 选中的图形组索引列表（可选）
+        draw_bottom_part: 是否绘制底座部分（默认：True，仅用于GUI调用）
+    """
+    R = float(r_value)
+    D = float(d_value)
     
     # 计算参数
     calculator = SwingMachineToolingCalculator(
@@ -193,12 +209,12 @@ if __name__ == "__main__":
         {
           "radius": results["下摆机抛光基模R值"],
           "chord_length": results["下摆机抛光基模口径"],
-          "drawing_type": "XPMJM","designer_name": "周凡"
+          "drawing_type": "XPMJM", "designer_name": "周凡"
         },
         {
           "radius": results["下摆机精磨基模R值"],
           "chord_length": results["下摆机精磨基模口径"],
-          "drawing_type": "XJMJM","designer_name": "周凡"
+          "drawing_type": "XJMJM", "designer_name": "周凡"
         },
         {
             "radius": results["镜片R值"],
@@ -209,16 +225,16 @@ if __name__ == "__main__":
             "radius": -results["镜片R值"],
             "chord_length": results["基准模改丸片口径"],
             "drawing_type": "JZM_KC", "designer_name": "周凡", "b": 3
-        },#注意一下，这里使用的是JZM_KC，而不是JZM，半径与镜面相反
-        {
-            "radius": results["高速抛光修盘基模R值"],
-            "chord_length": results["高速抛光修盘基模口径"],
-            "drawing_type": "GPMXJ", "designer_name": "周凡", "b": 6
         },
         {
-            "radius": results["高速抛光基模修盘R值"],
-            "chord_length": results["高速抛光基模修盘口径"],
-            "drawing_type": "GPMJX", "designer_name": "周凡", "b": 3
+          "radius": results["高速抛光修盘基模R值"],
+          "chord_length": results["高速抛光修盘基模口径"],
+          "drawing_type": "GPMXJ", "designer_name": "周凡", "b": 6
+        },
+        {
+          "radius": results["高速抛光基模修盘R值"],
+          "chord_length": results["高速抛光基模修盘口径"],
+          "drawing_type": "GPMJX", "designer_name": "周凡", "b": 3
         }
     ]
     
@@ -232,7 +248,7 @@ if __name__ == "__main__":
         drawing = None
         try:
             drawing = AutoCadDrawing()
-            drawing.create_drawing(**params)
+            drawing.create_drawing(**params, draw_bottom_part=draw_bottom_part)
             drawing.save_drawing()
         except Exception as e:
             print(f"失败: {e}")
@@ -241,3 +257,26 @@ if __name__ == "__main__":
                 drawing.close()
             if i < len(params_list):
                 time.sleep(2.0)
+
+
+if __name__ == "__main__":
+    import sys
+    
+    # 如果有命令行参数，使用命令行模式
+    if len(sys.argv) >= 3:
+        R = sys.argv[1]
+        D = sys.argv[2]
+        
+        # 解析图形组选择
+        selected_groups = []
+        if "--groups" in sys.argv:
+            idx = sys.argv.index("--groups")
+            if idx + 1 < len(sys.argv):
+                selected_groups = [int(x) for x in sys.argv[idx+1].split(",") if x.isdigit()]
+        
+        run_drawing_from_params(R, D, selected_groups)
+    else:
+        # 没有命令行参数，自动打开GUI
+        print("没有提供命令行参数，启动GUI界面...")
+        from molds.molds_gui import create_gui
+        create_gui()

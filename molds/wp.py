@@ -67,10 +67,10 @@ class WP:
             up[1], down[1] = base + APoint(3 + sagitta, chord / 2), base + APoint(3 + sagitta, -chord / 2)
             up[5], down[5] = base + APoint(3 + sagitta, 0.5), base + APoint(3 + sagitta, -0.5)
             #最外侧口径标注
-            dim_point5 = APoint(up[1].x + 1.5 * chord, up[1].y)
-            dim_obj5 = self.acad.model.AddDimAligned(up[1], down[1], dim_point5)
-            dim_obj5.TextOverride = "%%c<>"
-            dim_obj5.StyleName = "ZqStandard0.5"
+            dim_point1 = APoint(up[1].x + 1.5 * chord, up[1].y)
+            dim_obj1 = self.acad.model.AddDimAligned(up[1], down[1], dim_point1)
+            dim_obj1.TextOverride = "%%c<>"
+            dim_obj1.StyleName = "ZqStandard0.5"
 
 
          
@@ -85,8 +85,7 @@ class WP:
         self.acad.ActiveDocument.ActiveDimStyle = dim_style
         
         up[0], down[0] = base + APoint(0, chord / 2), base + APoint(0, -chord / 2)
-        dim_obj1 = self.acad.model.AddDimAligned(up[1], down[1], APoint(up[1].x + chord, up[1].y))
-        dim_obj1.TextOverride = "%%c<>"
+        
         #总高标注
         dim_obj_up01 = self.acad.model.AddDimAligned(up[0], up[1], APoint(up[0].x, up[0].y + chord))
         #小孔口径标注
@@ -104,7 +103,8 @@ class WP:
         up[6] = center + APoint(radius * math.cos(half_angle), abs(radius) * math.sin(half_angle))
         down[6] = center + APoint(radius * math.cos(half_angle), -abs(radius) * math.sin(half_angle))
         #内口径标注
-
+        dim_obj6 = self.acad.model.AddDimAligned(up[1], down[1], APoint(up[1].x + chord, up[1].y))
+        dim_obj6.TextOverride = "%%c<>"
 
         set_layer("轮廓线")
         arc = self.acad.model.AddArc(center, abs(radius), start_angle, end_angle)

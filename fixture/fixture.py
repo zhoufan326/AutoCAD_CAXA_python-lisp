@@ -102,7 +102,7 @@ class FixtureOperations:
         
         return filepath
         
-    def create_drawing(self, params, designer_name="默认设计师"):
+    def create_drawing(self, params, designer_name="周凡"):
         """创建图纸主函数"""
         type_ = params["type"]
         base = params["base"]
@@ -218,7 +218,9 @@ if __name__ == "__main__":
         print(f"\n创建第 {i}/{len(params_list)} 个夹具图形...")
         
         fixture = FixtureOperations()
-        fixture.create_drawing(params, designer_name="周凡")
+        # 从params中获取designer_name，如果没有则使用默认值
+        designer_name = params.get("designer_name", "周凡")
+        fixture.create_drawing(params, designer_name=designer_name)
         fixture.save_drawing()
         
         print(f"✓ 第 {i} 个夹具图形创建成功")

@@ -7,7 +7,10 @@ class FixtureGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("夹具 AutoCAD 绘图工具")
-        self.root.geometry("400x400")
+        self.root.geometry("400x450")  # 增加窗口高度以避免重叠
+        
+        # 设置列权重，使输入框能够随窗口大小调整
+        self.root.grid_columnconfigure(1, weight=1)
         
         # 类型定义
         self.types = ["POM", "XSZJ", "XJJK"]
@@ -28,8 +31,14 @@ class FixtureGUI:
         
         # 直径输入（所有类型都需要）
         tk.Label(self.root, text="直径:").grid(row=1, column=0, padx=10, pady=5, sticky="e")
-        self.diameter_entry = tk.Entry(self.root)
+        self.diameter_entry = tk.Entry(self.root, width=5)
         self.diameter_entry.grid(row=1, column=1, padx=10, pady=5, sticky="ew")
+        
+        # 设计师名称输入（所有类型都需要）
+        tk.Label(self.root, text="设计师:").grid(row=2, column=0, padx=10, pady=5, sticky="e")
+        self.designer_entry = tk.Entry(self.root, width=5)
+        self.designer_entry.grid(row=2, column=1, padx=10, pady=5, sticky="ew")
+        self.designer_entry.insert(0, "周凡")  # 默认值为"周凡"
         
         # 其他可选参数（初始隐藏）
         self.param_widgets = {}
@@ -42,15 +51,15 @@ class FixtureGUI:
             ("POM_height", "POM高度:")
         ]
         
-        for i, (key, label) in enumerate(param_configs, start=2):
+        for i, (key, label) in enumerate(param_configs, start=3):
             tk.Label(self.root, text=label).grid(row=i, column=0, padx=10, pady=5, sticky="e")
-            entry = tk.Entry(self.root)
+            entry = tk.Entry(self.root, width=5)
             entry.grid(row=i, column=1, padx=10, pady=5, sticky="ew")
             self.param_widgets[key] = entry
         
         # 启动按钮
         tk.Button(self.root, text="开始绘图", command=self.start_drawing, 
-                 width=15, bg="lightblue").grid(row=len(param_configs)+2, column=0, 
+                 width=15, bg="lightblue").grid(row=len(param_configs)+3, column=0, 
                                                columnspan=2, pady=20)
         
         # 回车键绑定
@@ -104,7 +113,8 @@ class FixtureGUI:
         params = {
             "type": type_,
             "base": "-130,0" if type_ == "XJJK" else "0,0",
-            "diameter": diameter
+            "diameter": diameter,
+            "designer_name": self.designer_entry.get().strip() or "周凡"
         }
         
         # 添加可选参数

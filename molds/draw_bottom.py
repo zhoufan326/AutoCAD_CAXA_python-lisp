@@ -1,4 +1,5 @@
 # draw_bottom.py - 绘制底座模块
+import math
 from pyautocad import APoint, aDouble
 
 

@@ -165,30 +165,34 @@ def _draw_small_caliber_base(self):
     self.set_layer("轮廓线")
     points = [None] * 10
     
+    # 创建left_point和right_point对象
+    left_point = APoint(0, 0)
+    right_point = APoint(0, 0)
+    
     if self.radius < 0:
-        left_point.x = self.left_pointN
-        right_point.x = self.right_pointN
+        left_point.x = self.left_pointN.x
+        right_point.x = self.right_pointN.x
     else:
-        left_point.x = self.left_point
-        right_point.x = self.right_point
+        left_point.x = self.left_point.x
+        right_point.x = self.right_point.x
     left_point.y = self.y_U
     right_point.y = self.y_U
 
 
 
-
-    points[0] = APoint(left_point.x, left_point.y)
-    points[1] = APoint(left_point.x, left_point.y + 2)
-    points[2] = APoint(-0.75, left_point.y + 2)
-    points[3] = APoint(-0.75, left_point.y + 3)
-    points[4] = APoint(0.75, left_point.y + 3)
-    points[5] = APoint(0.75, left_point.y + 2)
-    points[6] = APoint(right_point.x, left_point.y + 2)
-    points[7] = APoint(right_point.x, left_point.y)
-    points[8] = APoint(left_point.x, left_point.y)
-    points[9] = APoint(0, left_point.y)
+    # 保持原始绘制点顺序，重新分配数组索引
+    points[0] = APoint(-5, left_point.y)                 # 第1个点
+    points[1] = APoint(left_point.x, left_point.y)       # 第2个点
+    points[2] = APoint(left_point.x, left_point.y + 2)   # 第3个点
+    points[3] = APoint(-0.75, left_point.y + 2)          # 第4个点
+    points[4] = APoint(-0.75, left_point.y + 3)          # 第5个点
+    points[5] = APoint(0.75, left_point.y + 3)           # 第6个点
+    points[6] = APoint(0.75, left_point.y + 2)           # 第7个点
+    points[7] = APoint(right_point.x, left_point.y + 2)   # 第8个点
+    points[8] = APoint(right_point.x, left_point.y)       # 第9个点
+    points[9] = APoint(0, left_point.y)                  # 第10个点
     
     poly_points = [j for i in points for j in i]
     poly_points = aDouble(poly_points)
     self.acad.model.AddPolyLine(poly_points)
-    self.acad.model.AddLine(points[6] + APoint(-0.75, 0), points[6])
+    self.acad.model.AddLine(APoint(0,left_point.y + 2), points[6])

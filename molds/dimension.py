@@ -44,6 +44,22 @@ def _safe_set_text_style(acad_obj, style_name: str):
 
 ###——————————添加文本————————————#####
 
+def dia(acad_obj, center, radius, angle, leader_length=10):
+    """标注直径
+    
+    Args:
+        acad_obj: AutoCAD对象
+        center: 圆心
+        radius: 半径
+        angle: 角度
+        leader_length: 引导线长度
+    """
+    x = radius * math.cos(angle)
+    y = radius * math.sin(angle)
+    chord_point = center + APoint(x, y)
+    far_chord_point = center - APoint(x, y)
+    return acad_obj.model.AddDimDiametric(chord_point, far_chord_point, leader_length)
+
 def date_name( name="XJMJM/R10-Φ10",date="2026/1/1"):
     """在图纸上添加两个日期文本和一个名称文本。
 

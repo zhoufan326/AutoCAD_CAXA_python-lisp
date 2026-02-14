@@ -1,6 +1,7 @@
 # draw_top_view.py - 绘制俯视图模块
 import math
 from pyautocad import APoint, aDouble
+from molds.dimension import dia
 
 
 def draw_top_view(self):
@@ -70,34 +71,18 @@ def draw_top_view(self):
         self.set_layer("轮廓线")
         self.acad.model.AddCircle(center_down, self.half_chord + 1)
         self.set_layer("标注线")
-        dia(self, center_down, self.half_chord + 1, math.radians(70))
+        dia(self.acad, center_down, self.half_chord + 1, math.radians(70))
     
     self.set_layer("标注线")
-    dia(self, center_down, self.half_chord, math.radians(45)) 
-    dia(self, center_down, 4, 0) 
+    dia(self.acad, center_down, self.half_chord, math.radians(45)) 
+    dia(self.acad, center_down, 4, 0) 
     
     if self.chord_length >= 32:
-        dia(self, center_down, 9, math.radians(135), 1)
+        dia(self.acad, center_down, 9, math.radians(135), 1)
     else:
-        dia(self, center_down, 9, math.radians(135), 12)
+        dia(self.acad, center_down, 9, math.radians(135), 12)
     
     return arc3, line1, dim1, dim2
 
 
-def dia(self, center, radius, angle, leader_length=10):
-    """标注直径
-    
-    Args:
-        self: DrawingOperations类的实例
-        center: 圆心
-        radius: 半径
-        angle: 角度
-        leader_length: 引导线长度
-    """
-    x = radius * math.cos(angle)
-    y = radius * math.sin(angle)
 
-    chord_point = center + APoint(x, y)
-    far_chord_point = center - APoint(x, y)
-    
-    return self.acad.model.AddDimDiametric(chord_point, far_chord_point, leader_length)

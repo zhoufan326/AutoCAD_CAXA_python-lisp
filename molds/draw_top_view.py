@@ -1,7 +1,8 @@
 # draw_top_view.py - 绘制俯视图模块
 import math
 from pyautocad import APoint, aDouble
-from molds.dimension import dia
+from molds import dia
+from utils import LD, AD, CD
 
 
 def draw_top_view(self):
@@ -18,8 +19,8 @@ def draw_top_view(self):
     # 中心点（用于俯视图），使用 geometry 中计算的 center2
     center_down = APoint(0, -40) + self.center2
     self.set_layer("虚线")
-    # 中心小圆
-    circle = self.acad.model.AddCircle(center_down, 4)
+    # 使用CD函数绘制中心小圆并添加标注
+    circle, dim_circle = CD(self.acad, center_down, 4, APoint(center_down.x + 5, center_down.y), layer="虚线")
     circle.LinetypeScale = 0.2
     circle.Update()
     # 中心圆弧,优弧
@@ -36,21 +37,21 @@ def draw_top_view(self):
     
     if self.half_chord + 1 >= 9:
         self.set_layer("虚线")
-        arc3 = self.acad.model.AddArc(center_down, radius_down2, left_angle2, right_angle2)
-        line1 = self.acad.model.AddLine(l, r)
-        # 设置line1的线型比例为0.2
+        # 使用AD函数绘制中心圆弧
+        arc3, dim_arc3 = AD(self.acad, center_down, radius_down2, left_angle2, right_angle2, APoint(center_down.x, center_down.y - radius_down2 - 10), layer="虚线")
+        # 使用LD函数绘制直线并添加标注，设置直线图层为虚线
+        line1, dim1 = LD(self.acad, l, r, APoint(l.x, l.y + 7), line_layer="虚线")
+        # 设置line1和arc3的线型比例为0.2
         arc3.LinetypeScale = 0.2
         line1.LinetypeScale = 0.2
         arc3.Update()
         line1.Update()
     else:
         self.set_layer("轮廓线")
-        arc3 = self.acad.model.AddArc(center_down, radius_down2, left_angle2, right_angle2)
-        line1 = self.acad.model.AddLine(l, r)
-       
-    self.set_layer("标注线")
-    # 给 line1 添加线性标注
-    dim1 = self.acad.model.AddDimAligned(l, r, APoint(l.x, l.y + 7))
+        # 使用AD函数绘制中心圆弧
+        arc3, dim_arc3 = AD(self.acad, center_down, radius_down2, left_angle2, right_angle2, APoint(center_down.x, center_down.y - radius_down2 - 10), layer="轮廓线")
+        # 使用LD函数绘制直线并添加标注，使用默认图层
+        line1, dim1 = LD(self.acad, l, r, APoint(l.x, l.y + 7))
     dim2 = self.acad.model.AddDimRotated(
         l, 
         APoint((l.x + r.x) / 2, center_down.y - 9),
@@ -63,19 +64,17 @@ def draw_top_view(self):
         
     # 主圆（外圆）
     self.set_layer("轮廓线")
-    self.acad.model.AddCircle(center_down, self.half_chord)
+    # 使用CD函数绘制主圆并添加标注
+    main_circle, dim_main_circle = CD(self.acad, center_down, self.half_chord, APoint(center_down.x + self.half_chord + 10, center_down.y), layer="轮廓线")
     
     if radius < 0:
         # 负半径特有：绘制额外的外圆
         # 外圆半径 = half_chord + 1，与主圆共享同一中心点
         self.set_layer("轮廓线")
-        self.acad.model.AddCircle(center_down, self.half_chord + 1)
-        self.set_layer("标注线")
-        dia(self.acad, center_down, self.half_chord + 1, math.radians(70))
+        # 使用CD函数绘制额外的外圆并添加标注
+        extra_circle, dim_extra_circle = CD(self.acad, center_down, self.half_chord + 1, APoint(center_down.x + (self.half_chord + 1) + 10, center_down.y), layer="轮廓线")
     
-    self.set_layer("标注线")
-    dia(self.acad, center_down, self.half_chord, math.radians(45)) 
-    dia(self.acad, center_down, 4, 0) 
+    # 直径标注已在CD函数中完成 
     
     if self.chord_length >= 32:
         dia(self.acad, center_down, 9, math.radians(135), 1)

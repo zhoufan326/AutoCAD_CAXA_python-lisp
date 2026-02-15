@@ -15,10 +15,8 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 
 # 项目模块导入
-from molds import calculate_geometry, DrawingOperations, SwingMachineToolingCalculator
-from molds.dimension import dimension, date_name
-from utils import insert_block, set_layer, create_hatch, generate_filename, safe_acad_operation
-from utils.save_drawing import save_drawing
+from molds import calculate_geometry, DrawingOperations, SwingMachineToolingCalculator, dimension, date_name
+from utils import insert_block, set_layer, create_hatch, generate_filename, safe_acad_operation, LD, save_drawing
 
 # 常量定义
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # draw文件夹

@@ -1,6 +1,7 @@
 # draw_bottom.py - 绘制底座模块
 import math
 from pyautocad import APoint, aDouble
+from utils import AD
 
 
 def draw_bottom(self):
@@ -10,8 +11,11 @@ def draw_bottom(self):
         self: DrawingOperations类的实例
     """
     self.set_layer("轮廓线")
-    # 中心小圆弧，r固定为4
-    self.acad.model.AddArc(self.center2, 4, math.radians(90), math.radians(180))
+    # 使用AD函数绘制中心小圆弧
+    # 这个圆弧不需要标注，所以设置一个较远的标注位置或者后续删除标注
+    arc, dim_arc = AD(self.acad, self.center2, 4, math.radians(90), math.radians(180), APoint(self.center2.x - 10, self.center2.y), layer="轮廓线")
+    # 删除不需要的标注
+    dim_arc.Delete()
     if self.drawing_type in ("XJMJM", "XPMJM"):
         B = APoint(self.center.x - 9, self.y_M)
         C = APoint(self.center.x - 9, self.y_L)

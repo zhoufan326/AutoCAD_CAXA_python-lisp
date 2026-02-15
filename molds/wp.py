@@ -9,11 +9,10 @@ from typing import Optional
 from pyautocad import APoint, aDouble, Autocad
 
 # 项目模块导入
-from molds.Tool_calculation import SwingMachineToolingCalculator
-from molds.dimension import date_name, dia
+from molds import SwingMachineToolingCalculator, date_name, dia
+from utils import LD, AD, CD
 from utils import set_layer, create_hatch, insert_block, initial_connection, retry
-from utils.filename import generate_filename
-from utils.save_drawing import save_drawing
+from utils import generate_filename, save_drawing
 
 # 常量定义
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -74,20 +73,20 @@ class WP:
 
 
          
+        # 使用AD函数绘制圆弧并添加标注
         angle_rad = math.radians(30) if radius >= 0 else math.radians(210)
-        chord_point = APoint(center.x + abs(radius) * math.cos(angle_rad), center.y + abs(radius) * math.sin(angle_rad))
-        
-        dim_rad = self.acad.model.AddDimRadial(center, chord_point, radius)
+        dim_location = APoint(center.x + (abs(radius) + 10) * math.cos(angle_rad), center.y + (abs(radius) + 10) * math.sin(angle_rad))
+        arc, dim_rad = AD(self.acad, center, abs(radius), start_angle, end_angle, dim_location, layer="轮廓线")
         dim_rad.StyleName = "ZqStandard0.5$4"
         dim_rad.TextOverride = f"{'凹' if radius < 0 else ''}<> ".strip()
+        # 移除原来的arc创建代码，因为AD函数已经创建了arc
 
         dim_style = self.acad.ActiveDocument.DimStyles.Item("ZqStandard0.5")
         self.acad.ActiveDocument.ActiveDimStyle = dim_style
         
         up[0], down[0] = base + APoint(0, chord / 2), base + APoint(0, -chord / 2)
         
-        #总高标注
-        dim_obj_up01 = self.acad.model.AddDimAligned(up[0], up[1], APoint(up[0].x, up[0].y + chord))
+        
         #小孔口径标注
         up[2], down[2] = base + APoint(0, 0.75), base + APoint(0, -0.75)
         dim_obj2 = self.acad.model.AddDimAligned(up[2], down[2], APoint(up[2].x - chord/2, up[2].y))
@@ -97,7 +96,6 @@ class WP:
         dim_obj2.Update()
         #小孔深度
         up[3], down[3] = base + APoint(1, 0.75), base + APoint(1, -0.75)
-        self.acad.model.AddDimAligned(up[2], up[3], APoint(up[1].x, up[1].y + chord/2))
         
         up[4], down[4] = base + APoint(3, 0.5), base + APoint(3, -0.5)
         up[6] = center + APoint(radius * math.cos(half_angle), abs(radius) * math.sin(half_angle))
@@ -106,18 +104,40 @@ class WP:
         dim_obj6 = self.acad.model.AddDimAligned(up[1], down[1], APoint(up[1].x + chord, up[1].y))
         dim_obj6.TextOverride = "%%c<>"
 
-        set_layer("轮廓线")
-        arc = self.acad.model.AddArc(center, abs(radius), start_angle, end_angle)
+        # arc已在AD函数中创建
 
-        pline1 = self.acad.model.AddPolyline(aDouble([j for i in [up[6], up[1], up[0], down[0], down[1], down[6], up[6]] for j in i]))
-        pline2 = self.acad.model.AddPolyline(aDouble([j for i in [up[2], up[3], down[3], down[2]] for j in i]))
-        pline3 = self.acad.model.AddPolyline(aDouble([j for i in [up[5], up[4], down[4], down[5]] for j in i]))
+        # 使用LD函数绘制有标注的水平和垂直线段
+        # up[1] → up[0] 水平线段（有总高标注）
+        line1, _ = LD(self.acad, up[1], up[0], APoint(up[0].x, up[0].y + chord))
+        # down[0] → down[1] 水平线段（有总高标注）
+        line2, _ = LD(self.acad, down[0], down[1], APoint(down[0].x, down[0].y - chord))
+        # up[2] → up[3] 水平线段（有小孔深度标注）
+        line3, _ = LD(self.acad, up[2], up[3], APoint(up[1].x, up[1].y + chord/2))
+
+        # 将剩余的非水平/垂直线段创建为直线
+        # pline1剩余线段：up[6] → up[1], up[0] → down[0], down[1] → down[6], down[6] → up[6]
+        line4 = self.acad.model.AddLine(up[6], up[1])  # 自动继承当前图层（轮廓线）
+        line5 = self.acad.model.AddLine(up[0], down[0])  # 自动继承当前图层（轮廓线）
+        line6 = self.acad.model.AddLine(down[1], down[6])  # 自动继承当前图层（轮廓线）
+        line7 = self.acad.model.AddLine(down[6], up[6])  # 自动继承当前图层（轮廓线）
+
+        # pline2剩余线段：up[3] → down[3], down[3] → down[2], down[2] → up[2]
+        line8 = self.acad.model.AddLine(up[3], down[3])  # 自动继承当前图层（轮廓线）
+        line9 = self.acad.model.AddLine(down[3], down[2])  # 自动继承当前图层（轮廓线）
+        line10 = self.acad.model.AddLine(down[2], up[2])  # 自动继承当前图层（轮廓线）
+
+        # 保持pline3为多段线（无直接标注的线段）
+        pline3 = self.acad.model.AddPolyline(aDouble([j for i in [up[5], up[4], down[4], down[5]] for j in i]))  # 自动继承当前图层（轮廓线）
 
         center2 = center + APoint(4 * chord, 0)
-        self.acad.model.AddCircle(center2, 1.5/2)
-        self.acad.model.AddCircle(center2, abs(radius))
+        # 使用CD函数绘制圆并添加标注
+        # 中心小圆
+        circle1, _ = CD(self.acad, center2, 1.5/2, APoint(center2.x + 2, center2.y))
+        # 主圆
+        circle2, dim_circle2 = CD(self.acad, center2, abs(radius), APoint(center2.x, center2.y - abs(radius) - 5))
         if radius <= 0:
-            self.acad.model.AddCircle(center2, chord/2)
+            # 内圆
+            circle3, dim_circle3 = CD(self.acad, center2, chord/2, APoint(center2.x + chord/2 + 5, center2.y))
         # 计算水平切线的x偏移量，确保使用正确的半径值并避免负数平方根
         if radius >= 0:
             current_radius = abs(radius)
@@ -136,10 +156,6 @@ class WP:
         self.acad.model.AddLine(APoint(center2.x - x_offset, center2.y - 0.5), APoint(center2.x + x_offset, center2.y - 0.5))
         
         date_name(name=self.base_filename)
-        set_layer("标注线")
-        dia(self.acad, center2, radius, math.radians(90))
-        if radius <= 0:
-            dia(self.acad, center2, chord / 2, math.radians(135))
         
         retry(lambda: self.acad.doc.SendCommand("_.zoom _e "), "缩放到范围", max_retries=3, initial_delay=0.8)
         time.sleep(1.0)

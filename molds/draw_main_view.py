@@ -65,7 +65,7 @@ def positive_radius(self):
     self.acad.model.AddLine(APoint(self.right_point.x, self.y_U), APoint(self.center.x + 5, self.y_U))
 
     # 使用AD函数绘制圆弧并添加标注
-    arc, dim_arc = AD(self.acad, self.center, self.radius, self.start_angle, self.end_angle, leader_length=20, chord_angle=self.start_angle+0.6*self.theta)
+    arc, dim_arc = AD(self.acad, self.center, self.radius, self.start_angle, self.end_angle, leader_length=20, locate_angle=self.start_angle+0.6*self.theta)
     if dim_arc is not None:
         dim_arc.TextOverride = "凸<>"
     return arc
@@ -85,7 +85,8 @@ def negative_radius(self):
     line3 = self.acad.model.AddLine(APoint(self.center.x, self.y_U2), APoint(self.center.x + self.half_chordN, self.y_U2))
     line3.Layer = "轮廓线"
     
-    arc, dim_arc = AD(self.acad, self.center, self.radius, self.start_angle, math.pi*1.5, chord_angle=self.start_angle+self.theta/3)
+    locate_angle=self.start_angle+self.theta/6
+    arc, dim_arc = AD(self.acad, self.center, self.radius, self.start_angle, math.pi*1.5, locate_angle)
     if dim_arc is not None:
         dim_arc.TextOverride = "凹<>"
     

@@ -104,7 +104,7 @@ def bottom(self):
             dim4.Update()
     
     # 使用AD函数绘制底部圆槽
-    arc, dim_arc = AD(self.acad, self.center2, 4, math.pi/2, math.pi, 7,chord_angle=0.75*math.pi)
+    arc, dim_arc = AD(self.acad, self.center2, 4, math.pi/2, math.pi, 7,locate_angle=0.75*math.pi)
     dim_arc.TextPosition = APoint(self.center2.x + 3, self.center2.y - 3)
 
     #连接轴直径标注
@@ -112,6 +112,8 @@ def bottom(self):
         dim5_locate=right[0]+APoint(14,-4)
         dim5 = self.acad.model.AddDimAligned(left[0],right[0], dim5_locate)
         dim5.TextOverride = "%%c<>"
+        dim5.TextPosition = right[0]+APoint(10,  -4)
+       
         dim5.Layer = "标注线"
     #总高标注
     self.arc_center_point = self.center + APoint(0, self.radius)

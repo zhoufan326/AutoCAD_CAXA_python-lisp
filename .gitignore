@@ -36,3 +36,6 @@ output/
 # Temporary files
 *.tmp
 *.temp
+push.ps1
+push.sh
+push_output.txt

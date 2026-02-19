@@ -31,8 +31,8 @@ class DrawingOperations:
         self.right_point = geometry["right_point"]
         self.center = geometry["center"]
         self.chord_y = geometry["chord_y"]
-        self.y_U = geometry["y_U"]
-        self.y_M = geometry["y_M"]
+        self.y_connect = geometry["y_connect"]
+        self.y_Up = geometry["y_Up"]
         self.abs_radius = geometry["abs_radius"]
         self.start_angle = geometry["start_angle"]
         self.end_angle = geometry["end_angle"]
@@ -42,8 +42,8 @@ class DrawingOperations:
         self.theta = geometry["theta"]  # theta直接使用半圆心角（弧度）
         self.half_chord = geometry["half_chord"]
         self.half_chordN = geometry["half_chordN"]
-        self.y_L = geometry["y_L"]
-        self.y_M2 = geometry["y_M2"]
+        self.y_Low = geometry["y_Low"]
+        self.y_Up2 = geometry["y_Up2"]
         self.a = geometry["a"]
         self.b = geometry.get("b", 6)
         self.c = geometry.get("c", 25)
@@ -56,26 +56,17 @@ class DrawingOperations:
         self.acad = Autocad(create_if_not_exists=True)
         time.sleep(1.0)  # 增加初始化延迟
         
-        # 验证实例和文档的可用性
-        try:
-            doc = self.acad.doc
-            if doc is None:
-                raise RuntimeError("AutoCAD文档不可用")
-            
-            # 尝试访问ModelSpace以进一步验证
-            model = doc.ModelSpace
-            if model is None:
-                raise RuntimeError("AutoCAD模型空间不可用")
-                
-            print("AutoCAD实例初始化成功")
-        except Exception as e:
-            print(f"AutoCAD实例验证失败: {e}")
-            raise
+
     def draw_views(self):
         """绘制所有视图"""
-        draw_main_view(self) 
         if self.drawing_type in ("XJMJM", "XPMJM"):
-            draw_top_view(self)  
+            draw_main_view(self)
+            draw_top_view(self) 
+           
+        else:
+            self.center=self.center+APoint(0,-30)
+            draw_main_view(self) 
+
         print("缩放到范围...")
         self.acad.doc.SendCommand("_.zoom _e ")
         time.sleep(1.0) 

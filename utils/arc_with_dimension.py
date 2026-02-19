@@ -6,6 +6,7 @@
 """
 
 import math
+from pydoc import locate
 from pyautocad import APoint
 from .retry_decorator import safe_acad_retry
 
@@ -56,7 +57,7 @@ def AD(acad, center, radius, start_angle, end_angle, leader_length=20,
         # 计算弦点角度（使用指定角度或圆弧中点）
         if locate_angle is None:
             locate_angle = (start_angle + end_angle) / 2
-        
+    
         # 计算弦点坐标
         locate_point = APoint(
             center.x + abs_radius * math.cos(locate_angle),

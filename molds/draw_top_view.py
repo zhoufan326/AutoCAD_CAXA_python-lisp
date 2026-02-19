@@ -15,7 +15,7 @@ def draw_top_view(self):
     """
     radius = self.radius
     # 中心点（用于俯视图），使用 geometry 中计算的 center2
-    center_top = APoint(0, -self.half_chord - 10) + self.center2
+    center_top = APoint(0, -self.chord_length - 15) + self.center2
     
     # 使用CD函数绘制中心小圆并添加标注
     leader_length = 5
@@ -26,10 +26,10 @@ def draw_top_view(self):
     # 中心圆弧,优弧
     radius_down2 = 9
     chord_length2 = 6
-    start_angle2, end_angle2, l, r = calculate_arc_parameter(center_top, chord_length2, radius_down2, "horizontal")
+    end_angle2, start_angle2, r, l = calculate_arc_parameter(center_top, chord_length2, radius_down2, "horizontal")
     if self.half_chord + 1 >= 9:
         # 使用AD函数绘制中心圆弧,优弧的起始角和终止角是反的
-        arc3=self.acad.model.AddArc(center_top, radius_down2, end_angle2, start_angle2)
+        arc3=self.acad.model.AddArc(center_top, radius_down2, start_angle2, end_angle2)
         # 使用LD函数绘制优弧的连接直线并添加标注
         line1, dim1 = LD(self.acad, l, r, APoint(l.x, l.y + 3), line_layer="虚线")
         # 设置line1和arc3的线型比例为0.2

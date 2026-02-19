@@ -22,12 +22,12 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
         #弦的纵坐标 
         chord_y = chord_center.y
         #此处计算剩余横线的纵坐标 
-        #y_U为上横线的纵坐标，y_M为中横线的纵坐标，y_L为下横线的纵坐标。
+        #y_connect为连接轴横线的纵坐标，y_Up为底座上横线的纵坐标，y_Low为底座下横线的纵坐标。
 
         # 根据半径正负设置不同的中横线位置和角度
     
-        y_U = chord_y - a
-        y_M = y_U - b
+        y_connect = chord_y - a
+        y_Up = y_connect - b
         
         #凸面圆弧端点角度（弧度）
         start_angle = math.pi/2 - half_theta_rad
@@ -65,15 +65,15 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
         chord_to_center3=radius2*math.cos(theta_small)                                               
 
     
-        y_U =center.y - chord_to_center3
-        y_M = y_U - b
+        y_connect =center.y - chord_to_center3
+        y_Up = y_connect - b
             #凹面圆弧端点角度（弧度）
         start_angle = 3*math.pi/2 - half_theta_rad
         end_angle = 3*math.pi/2 + half_theta_rad  
         #下方圆弧的端点角度
         
-    y_M2=y_M-5
-    y_L = y_M - c
+    y_Up2=y_Up-5
+    y_Low = y_Up - c
     #底座下半部分的下横线纵坐标
     
     left_point = APoint(center.x - half_chord, chord_y)
@@ -82,7 +82,7 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
     left_pointN = left_point - APoint(1,0)
     right_pointN = right_point + APoint(1,0)
     
-    center2 = APoint(center.x, y_U - b - c)
+    center2 = APoint(center.x, y_connect - b - c)
     
     return {
         "radius": radius,
@@ -97,7 +97,7 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
         "chord_center": chord_center,
         "chord_to_center": chord_to_center,
         "chord_y": chord_y,
-        "y_U": y_U, "y_M": y_M,"y_M2":y_M2, "y_L": y_L,
+        "y_connect": y_connect, "y_Up": y_Up,"y_Up2":y_Up2, "y_Low": y_Low,
         "start_angle": start_angle,
         "end_angle": end_angle,
         "center": center,

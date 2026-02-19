@@ -74,7 +74,7 @@ def _open_template(path: str):
 @safe_acad_retry(3, 0.8, "添加剖面线")
 def _add_hatch(acad, geometry: Dict):
     """添加剖面线"""
-    create_hatch(acad, -3, geometry["y_U"] - 3)
+    create_hatch(acad, -3, geometry["y_connect"] - 3)
     time.sleep(0.6)
 
 @safe_acad_retry(4, 1.0, "插入图块")

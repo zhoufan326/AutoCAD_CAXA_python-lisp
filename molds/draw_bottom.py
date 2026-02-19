@@ -9,18 +9,23 @@ def bottom(self):
     """绘制底座部分
     """
     
-    #连接轴和底座的宽度
-    width_Up=10
-    width_Mid=18
+    #连接轴的宽度
+    width_Connect=10
+    #底座的上宽度和下宽度
+    width_Up=18
     width_Low=18
+    if (abs(self.radius) < 11 or self.chord_length < 18):
+        width_Connect=6
+       
+       
     left = [0] * 5
     right = [0] * 5
     
     if self.drawing_type in ("XJMJM", "XPMJM"):
-        left[0] = APoint(self.center.x - width_Up/2, self.y_U)
-        left[1] = APoint(self.center.x - width_Up/2, self.y_M)
-        left[2] = APoint(self.center.x - width_Mid/2, self.y_M)
-        left[3] = APoint(self.center.x - width_Low/2, self.y_L)
+        left[0] = APoint(self.center.x - width_Connect/2, self.y_connect)
+        left[1] = APoint(self.center.x - width_Connect/2, self.y_Up)
+        left[2] = APoint(self.center.x - width_Up/2, self.y_Up)
+        left[3] = APoint(self.center.x - width_Low/2, self.y_Low)
         locate1=left[1]+APoint(-7, 0)
         line1,dim1 = LD(self.acad, left[0], left[1], locate1)
         line12=self.acad.model.AddLine(left[1], left[2])
@@ -28,14 +33,14 @@ def bottom(self):
         locate2=left[2]+APoint(-1, 0)
         line2,dim2 = LD(self.acad, left[2], left[3], locate2)
 
-        right[0] = APoint(self.center.x + 5, self.y_U)
-        right[1] = APoint(self.center.x + 5, self.y_M)
-        right[2] = APoint(self.center.x + 9, self.y_M)
-        right[3] = APoint(self.center.x + 9, self.y_L)
+        right[0] = APoint(self.center.x + 5, self.y_connect)
+        right[1] = APoint(self.center.x + 5, self.y_Up)
+        right[2] = APoint(self.center.x + 9, self.y_Up)
+        right[3] = APoint(self.center.x + 9, self.y_Low)
         lowpoint = right[3]
         #绘制右侧非剖面的轮廓直线
-        self.acad.model.AddLine(APoint(self.center.x, self.y_U), right[0])
-        self.acad.model.AddLine(APoint(self.center.x, self.y_M), right[1])
+        self.acad.model.AddLine(APoint(self.center.x, self.y_connect), right[0])
+        self.acad.model.AddLine(APoint(self.center.x, self.y_Up), right[1])
 
         # 使用多段线连接右侧4个点
         poly_points = [j for i in right[:4] for j in i]
@@ -49,20 +54,20 @@ def bottom(self):
             dim3.TextOverride = "%%c<>"
             dim3.Update()
         
-        line4 = self.acad.model.AddLine(APoint(3, self.y_M), APoint(3, self.y_L))
+        line4 = self.acad.model.AddLine(APoint(3, self.y_Up), APoint(3, self.y_Low))
         line4.Layer = "虚线"
 
     else:
-        width_Up=10
-        width_Mid=14
+        width_Connect=10
+        width_Up=14
         width_Low=10
-        self.acad.model.AddLine(APoint(0, self.y_M2), APoint(width_Mid/2, self.y_M2))
+        self.acad.model.AddLine(APoint(0, self.y_Up2), APoint(width_Up/2, self.y_Up2))
         
-        left[0] = APoint(self.center.x - width_Up/2, self.y_U)
-        left[1] = APoint(self.center.x - width_Up/2, self.y_M)
-        left[2] = APoint(self.center.x - width_Mid/2, self.y_M)
-        left[3] = APoint(self.center.x - width_Mid/2, self.y_M2)
-        left[4] = APoint(self.center.x - width_Low/2, self.y_L)
+        left[0] = APoint(self.center.x - width_Connect/2, self.y_connect)
+        left[1] = APoint(self.center.x - width_Connect/2, self.y_Up)
+        left[2] = APoint(self.center.x - width_Up/2, self.y_Up)
+        left[3] = APoint(self.center.x - width_Up/2, self.y_Up2)
+        left[4] = APoint(self.center.x - width_Low/2, self.y_Low)
         line1,dim1 = LD(self.acad, left[0], left[1], left[0]-APoint(-7, 0))
         self.acad.model.AddLine(left[1], left[2])
         locate2=left[2]-APoint(-7, 0)
@@ -70,15 +75,15 @@ def bottom(self):
         locate3=left[4]-APoint(-7, 0)
         line3,dim3 = LD(self.acad, left[3], left[4], locate3)
         
-        right[0] = APoint(self.center.x + width_Up/2, self.y_U)
-        right[1] = APoint(self.center.x + width_Up/2, self.y_M)
-        right[2] = APoint(self.center.x + width_Mid/2, self.y_M)
-        right[3] = APoint(self.center.x + width_Mid/2, self.y_L)
-        right[4] = APoint(self.center.x + width_Low/2, self.y_L)
+        right[0] = APoint(self.center.x + width_Connect/2, self.y_connect)
+        right[1] = APoint(self.center.x + width_Connect/2, self.y_Up)
+        right[2] = APoint(self.center.x + width_Up/2, self.y_Up)
+        right[3] = APoint(self.center.x + width_Up/2, self.y_Low)
+        right[4] = APoint(self.center.x + width_Low/2, self.y_Low)
         lowpoint = right[4]
-        self.acad.model.AddLine(APoint(self.center.x, self.y_U), right[0])
-        self.acad.model.AddLine(APoint(self.center.x, self.y_M), right[1])
-        self.acad.model.AddLine(APoint(self.center.x, self.y_M2), right[3])
+        self.acad.model.AddLine(APoint(self.center.x, self.y_connect), right[0])
+        self.acad.model.AddLine(APoint(self.center.x, self.y_Up), right[1])
+        self.acad.model.AddLine(APoint(self.center.x, self.y_Up2), right[3])
         
         # 使用多段线连接右侧5个点
         poly_points = [j for i in right[:5] for j in i]
@@ -88,8 +93,8 @@ def bottom(self):
         
 
         # 添加锥度标注
-        arrow_pnt = APoint((width_Mid+width_Low)/2, (self.y_L + self.y_M) / 2)
-        baseline_pnt = APoint((width_Mid+width_Low)/2+10, (self.y_L + self.y_M) / 2 - 5)
+        arrow_pnt = APoint((width_Up+width_Low)/2, (self.y_Low + self.y_Up) / 2)
+        baseline_pnt = APoint((width_Up+width_Low)/2+10, (self.y_Low + self.y_Up) / 2 - 5)
         
         pnts_array = np.array([arrow_pnt, baseline_pnt]).flatten()
         leader = self.acad.model.AddMLeader(pnts_array, 0)

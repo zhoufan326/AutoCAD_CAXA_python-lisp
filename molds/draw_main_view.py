@@ -17,7 +17,7 @@ def draw_main_view(self):
 
     if (self.drawing_type in ("XJMJM", "GPMXJ")) and (abs(self.radius) < 11 or self.chord_length < 18):
     # 这种情况下绘制的其实是丸片底座
-        self.y_U = self.chord_y - self.a  
+        self.y_connect = self.chord_y - self.a  
         small_caliber_base(self)
     elif  self.radius > 0:
         positive_radius(self)
@@ -29,7 +29,7 @@ def draw_main_view(self):
     if self.draw_bottom_part:
         bottom(self)
     # 绘制中心线
-    CL(self, self.chord_center+APoint(0, 15), APoint(self.center.x, self.y_L - 15))
+    CL(self, self.chord_center+APoint(0, 15), APoint(self.center.x, self.y_Low - 15))
  
 
     self.acad.doc.SendCommand("_.zoom _e ")
@@ -39,30 +39,27 @@ def KC(self):
     """绘制开槽标注"""
     if self.drawing_type in ("JZM_KC", "GPMJX"):
         # 添加开槽标注
-        try:
-            arrow_pnt = APoint(0, self.radius) + self.center
-            baseline_pnt = arrow_pnt + APoint(25, 15)
-            pnts_array = np.array([arrow_pnt, baseline_pnt]).flatten()
-
-            leader = self.acad.model.AddMLeader(pnts_array, 0)
-            leader.DoglegLength = 8
-            leader.LandingGap = 3
-            leader.TextString = "开槽"
-            leader.Layer = "标注线"
-        except Exception as e:
-            print(f"绘制开槽标注时发生错误: {e}")
+        
+        arrow_pnt = APoint(0, self.radius) + self.center
+        baseline_pnt = arrow_pnt + APoint(25, 15)
+        pnts_array = np.array([arrow_pnt, baseline_pnt]).flatten()
+        leader = self.acad.model.AddMLeader(pnts_array, 0)
+        leader.DoglegLength = 8
+        leader.LandingGap = 3
+        leader.TextString = "开槽"
+        leader.Layer = "标注线"
 
 def positive_radius(self):
     """绘制正半径主视图
     """
     self.acad.model.AddLine(APoint(self.center.x, self.chord_y), self.right_point)
-    self.acad.model.AddLine(APoint(self.center.x, self.y_U), APoint(self.center.x + 5, self.y_U))
-    self.acad.model.AddLine(APoint(self.center.x, self.y_M), APoint(self.center.x + 5, self.y_M))
+    self.acad.model.AddLine(APoint(self.center.x, self.y_connect), APoint(self.center.x + 5, self.y_connect))
+    self.acad.model.AddLine(APoint(self.center.x, self.y_Up), APoint(self.center.x + 5, self.y_Up))
    
-    self.acad.model.AddLine(self.left_point, APoint(self.left_point.x, self.y_U))
-    self.acad.model.AddLine(APoint(self.left_point.x, self.y_U), APoint(self.center.x - 5, self.y_U))
-    self.acad.model.AddLine(self.right_point, APoint(self.right_point.x, self.y_U))
-    self.acad.model.AddLine(APoint(self.right_point.x, self.y_U), APoint(self.center.x + 5, self.y_U))
+    self.acad.model.AddLine(self.left_point, APoint(self.left_point.x, self.y_connect))
+    self.acad.model.AddLine(APoint(self.left_point.x, self.y_connect), APoint(self.center.x - 5, self.y_connect))
+    self.acad.model.AddLine(self.right_point, APoint(self.right_point.x, self.y_connect))
+    self.acad.model.AddLine(APoint(self.right_point.x, self.y_connect), APoint(self.center.x + 5, self.y_connect))
 
     # 使用AD函数绘制圆弧并添加标注
     arc, dim_arc = AD(self.acad, self.center, self.radius, self.start_angle, self.end_angle, leader_length=20, locate_angle=self.start_angle+0.6*self.theta)
@@ -82,11 +79,11 @@ def negative_radius(self):
         dim2.TextOverride = "%%c<>"
         dim2.StyleName = "ZqStandard$0"  # 设置为半标注
 
-    line3 = self.acad.model.AddLine(APoint(self.center.x, self.y_U2), APoint(self.center.x + self.half_chordN, self.y_U2))
+    line3 = self.acad.model.AddLine(APoint(self.center.x, self.y_connect2), APoint(self.center.x + self.half_chordN, self.y_connect2))
     line3.Layer = "轮廓线"
     
     locate_angle=self.start_angle+self.theta/6
-    arc, dim_arc = AD(self.acad, self.center, self.radius, self.start_angle, math.pi*1.5, locate_angle)
+    arc, dim_arc = AD(self.acad, self.center, self.radius, self.start_angle, math.pi*1.5, locate_angle=locate_angle)
     if dim_arc is not None:
         dim_arc.TextOverride = "凹<>"
     
@@ -95,9 +92,9 @@ def negative_radius(self):
     line5 = self.acad.model.AddArc(self.center, self.radius2, math.pi*1.5 - self.theta_big, math.pi*1.5 - self.theta_small)
     line5.Layer = "轮廓线"
 
-    arc1 = self.acad.model.AddLine(self.left_pointN, APoint(self.left_pointN.x, self.y_U2))
+    arc1 = self.acad.model.AddLine(self.left_pointN, APoint(self.left_pointN.x, self.y_connect2))
     arc1.Layer = "轮廓线"
-    arc2 = self.acad.model.AddLine(self.right_pointN, APoint(self.right_pointN.x, self.y_U2))
+    arc2 = self.acad.model.AddLine(self.right_pointN, APoint(self.right_pointN.x, self.y_connect2))
     arc2.Layer = "轮廓线"
     
     return arc
@@ -129,8 +126,8 @@ def small_caliber_base(self):
     else:
         left_point.x = self.left_point.x
         right_point.x = self.right_point.x
-    left_point.y = self.y_U
-    right_point.y = self.y_U
+    left_point.y = self.y_connect
+    right_point.y = self.y_connect
 
     # 保持原始绘制点顺序，重新分配数组索引
     points[0] = APoint(-5, left_point.y)                 # 第1个点

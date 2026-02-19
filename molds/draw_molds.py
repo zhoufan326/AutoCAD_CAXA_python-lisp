@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 import sys
 import time
+import subprocess
 
 from typing import Any, Dict, Optional, List
 
@@ -165,4 +166,4 @@ if __name__ == "__main__":
     # 直接运行此文件时启动 GUI 界面
     current_dir = os.path.dirname(os.path.abspath(__file__))
     gui_file = os.path.join(current_dir, "molds_gui.py")
-    os.system(f'python "{gui_file}"')
+    subprocess.Popen([sys.executable, gui_file])

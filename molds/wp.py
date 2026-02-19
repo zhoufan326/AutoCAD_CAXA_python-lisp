@@ -2,16 +2,23 @@
 # 标准库导入
 import math
 import os
+import sys
 import time
 from typing import Optional
+
+# 添加项目根目录和当前目录到Python路径
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # 第三方库导入
 from pyautocad import APoint, aDouble, Autocad
 
 # 项目模块导入
-from molds import SwingMachineToolingCalculator, date_name, dia
+from Tool_calculation import SwingMachineToolingCalculator
+from utils import date_name
+from dimension import dia
 from utils import LD, AD, CD
-from utils import set_layer, create_hatch, insert_block, initial_connection, retry
+from utils import set_layer, create_hatch, insert_block, retry
 from utils import generate_filename, save_drawing
 
 # 常量定义
@@ -31,7 +38,16 @@ class WP:
     def __init__(self, acad=None, template_path=DEFAULT_TEMPLATE_PATH):
         self.acad = None
         self.filename = None
-        initial_connection(self, acad, template_path)
+        
+        # 初始化 AutoCAD 连接
+        if acad:
+            self.acad = acad
+        else:
+            self.acad = Autocad(create_if_not_exists=True)
+        
+        # 打开模板文件
+        if self.acad and template_path:
+            self.acad.app.Documents.Add(template_path)
     
     def save_drawing(self, parameter, save_directory: str = DEFAULT_SAVE_DIR) -> Optional[str]:
         diameter, radius = parameter["diameter"], parameter["radius"]
@@ -75,8 +91,8 @@ class WP:
          
         # 使用AD函数绘制圆弧并添加标注
         angle_rad = math.radians(30) if radius >= 0 else math.radians(210)
-        dim_location = APoint(center.x + (abs(radius) + 10) * math.cos(angle_rad), center.y + (abs(radius) + 10) * math.sin(angle_rad))
-        arc, dim_rad = AD(self.acad, center, abs(radius), start_angle, end_angle, dim_location, layer="轮廓线")
+        # 使用数值作为引线长度，而不是点对象
+        arc, dim_rad = AD(self.acad, center, abs(radius), start_angle, end_angle, 10, layer="轮廓线")
         dim_rad.StyleName = "ZqStandard0.5$4"
         dim_rad.TextOverride = f"{'凹' if radius < 0 else ''}<> ".strip()
         # 移除原来的arc创建代码，因为AD函数已经创建了arc
@@ -132,12 +148,18 @@ class WP:
         center2 = center + APoint(4 * chord, 0)
         # 使用CD函数绘制圆并添加标注
         # 中心小圆
-        circle1, _ = CD(self.acad, center2, 1.5/2, APoint(center2.x + 2, center2.y))
+        angle1 = 0  # 水平向右方向
+        leader_length1 = 2
+        circle1, _ = CD(self.acad, center2, 1.5/2, angle1, leader_length1)
         # 主圆
-        circle2, dim_circle2 = CD(self.acad, center2, abs(radius), APoint(center2.x, center2.y - abs(radius) - 5))
+        angle2 = math.pi  # 垂直向下方向
+        leader_length2 = 5
+        circle2, dim_circle2 = CD(self.acad, center2, abs(radius), angle2, leader_length2)
         if radius <= 0:
             # 内圆
-            circle3, dim_circle3 = CD(self.acad, center2, chord/2, APoint(center2.x + chord/2 + 5, center2.y))
+            angle3 = 0  # 水平向右方向
+            leader_length3 = 5
+            circle3, dim_circle3 = CD(self.acad, center2, chord/2, angle3, leader_length3)
         # 计算水平切线的x偏移量，确保使用正确的半径值并避免负数平方根
         if radius >= 0:
             current_radius = abs(radius)

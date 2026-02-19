@@ -43,10 +43,10 @@ def draw_cu(self, parameter):
       DimLineLocation_D = D + APoint(0, 25)
       #添加总口径标注
       dim_list[3] = self.acad.model.AddDimRotated(D, C, DimLineLocation_D, 0)
-      dim_list[3].TextOverride = "Φ<>"
+      dim_list[3].TextOverride = "%%c<>"
       DimLineLocation_G = G + APoint(0, -11)
       dim_list[4] = self.acad.model.AddDimRotated(base, G, DimLineLocation_G, 0)
-      dim_list[4].TextOverride = "Φ<>"
+      dim_list[4].TextOverride = "%%c<>"
       dim_list[4].ToleranceDisplay = 2
       dim_list[4].ToleranceUpperLimit = -0.01
       dim_list[4].ToleranceLowerLimit = 0.06
@@ -75,7 +75,7 @@ def draw_port(self, parameter):
       DimLineLocation_F = F + APoint(0, 9)
       dim_list = [None]*6
       dim_list[0] = self.acad.model.AddDimRotated(A, F, DimLineLocation_F, 0)
-      dim_list[0].TextOverride = "Φ<>"
+      dim_list[0].TextOverride = "%%c<>"
       dim_list[0].ToleranceDisplay = 2
       dim_list[0].ToleranceUpperLimit = 0.05
       dim_list[0].ToleranceLowerLimit = -0.03
@@ -83,7 +83,7 @@ def draw_port(self, parameter):
       dim_list[0].ToleranceHeightScale = 0.7
       DimLineLocation_D = D + APoint(0,16)
       dim_list[1] = self.acad.model.AddDimRotated(C, D, DimLineLocation_D, 0)
-      dim_list[1].TextOverride = "Φ<>"
+      dim_list[1].TextOverride = "%%c<>"
       DimLineLocation_D = APoint(D.x + 8 + diameter/2, D.y)
       dim_list[2] = self.acad.model.AddDimRotated(E, D, DimLineLocation_D, math.radians(90))
       DimLineLocation_D = APoint(D.x + 2 + diameter/2, D.y)

@@ -8,14 +8,11 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
     # 边界情况检查
     if chord_length > 2 * abs(radius):
         raise ValueError("弦长不能大于直径")
-
-
-
     #----------------------------重要参数----------------------------#
     chord_center=APoint(0,45) #定义模子圆弧上弦的位置   
     half_chord = chord_length / 2
     half_theta_rad = math.asin(half_chord / abs(radius))
-    half_theta_deg = math.degrees(half_theta_rad)   
+    half_theta_deg = math.degrees(half_theta_rad)
     #此处计算弦距离圆心的垂直高度。 弦心距   
     chord_to_center = abs(radius) * math.cos(half_theta_rad)#注意一下，这里弦高本身就可以是复制
    
@@ -32,10 +29,9 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
         y_U = chord_y - a
         y_M = y_U - b
         
-        #凸面圆弧端点角度
-
-        right_angle = 90 - half_theta_deg
-        left_angle = 90 + half_theta_deg
+        #凸面圆弧端点角度（弧度）
+        start_angle = math.pi/2 - half_theta_rad
+        end_angle = math.pi/2 + half_theta_rad
         
         # 为radius > 0的情况设置默认值
         radius2 = None  
@@ -71,9 +67,9 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
     
         y_U =center.y - chord_to_center3
         y_M = y_U - b
-            #凹面圆弧端点角度
-        left_angle = 270 - half_theta_deg
-        right_angle = 270 + half_theta_deg  
+            #凹面圆弧端点角度（弧度）
+        start_angle = 3*math.pi/2 - half_theta_rad
+        end_angle = 3*math.pi/2 + half_theta_rad  
         #下方圆弧的端点角度
         
     y_M2=y_M-5
@@ -93,15 +89,17 @@ def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
         "radius2": radius2,
         "theta_big": theta_big,
         "theta_small": theta_small,
+        "theta": half_theta_rad,  # 半圆心角（弧度）
         "abs_radius": abs(radius),
         "half_chord": half_chord,
         "half_chordN": half_chordN,
         "chord_length": chord_length,
+        "chord_center": chord_center,
         "chord_to_center": chord_to_center,
         "chord_y": chord_y,
         "y_U": y_U, "y_M": y_M,"y_M2":y_M2, "y_L": y_L,
-        "right_angle": right_angle,
-        "left_angle": left_angle,
+        "start_angle": start_angle,
+        "end_angle": end_angle,
         "center": center,
         "center2": center2,
         "left_point": left_point,

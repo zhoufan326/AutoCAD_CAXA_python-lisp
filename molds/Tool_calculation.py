@@ -21,7 +21,7 @@ import pandas as pd
 import math
 import os
 import sys
-from .D_R_ratio2K_V1 import find_best_constant_from_excel as constant_lookup
+from consult_table import find_best_constant_from_excel as constant_lookup
 
 
 class SwingMachineToolingCalculator:

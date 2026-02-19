@@ -9,14 +9,15 @@ import math
 from pyautocad import APoint
 
 
-def CD(acad, center, radius, locate, upper_tolerance=0.0, lower_tolerance=0.0, layer="轮廓线"):
+def CD(acad, center, radius, angle, leader_length, upper_tolerance=0.0, lower_tolerance=0.0, layer="轮廓线"):
     """绘制圆并创建标注
     
     参数:
         acad: AutoCAD 实例
         center: 圆中心点坐标 (APoint 对象)
         radius: 圆半径
-        locate: 标注线位置坐标 (APoint 对象)
+        angle: 角度（弧度），用于确定直径的方向
+        leader_length: 引线长度，为点ChordPoint到标准文字定位夹点的距离
         upper_tolerance: 上公差，默认 0.0
         lower_tolerance: 下公差，默认 0.0
         layer: 圆图层名称，默认 "轮廓线"，可设置为 "虚线"
@@ -25,38 +26,28 @@ def CD(acad, center, radius, locate, upper_tolerance=0.0, lower_tolerance=0.0, l
         tuple: (圆对象, 标注对象)
     """
     try:
+        # AutoCAD的AddCircle函数要求半径为正数，取绝对值
+        abs_radius = abs(radius)
+        
         # 绘制圆并设置图层
-        circle = acad.model.AddCircle(center, radius)
+        circle = acad.model.AddCircle(center, abs_radius)
         circle.Layer = layer  # 直接设置对象的图层
         circle.Update()
         
         # 创建直径标注并设置图层
-        # 计算直径的两个端点（使用与dimension.py中dia函数相同的方式）
-        angle = 0  # 水平方向
-        p1 = APoint(
-            center.x + radius * math.cos(angle),
-            center.y + radius * math.sin(angle)
+        # 计算直径的两个端点
+        ChordPoint = APoint(
+            center.x + abs_radius * math.cos(angle),
+            center.y + abs_radius * math.sin(angle)
         )
-        p2 = APoint(
-            center.x + radius * math.cos(angle + math.pi),
-            center.y + radius * math.sin(angle + math.pi)
+        FarChordPoint = APoint(
+            center.x + abs_radius * math.cos(angle + math.pi),
+            center.y + abs_radius * math.sin(angle + math.pi)
         )
         
-        # 计算标注线的位置（参考dimension.py中dia函数的方式）
-        # 如果用户未指定locate，则使用默认计算方式
-        if locate is None:
-            dim_location = APoint(
-                center.x + (radius + 10) * math.cos(angle + math.pi/2),
-                center.y + (radius + 10) * math.sin(angle + math.pi/2)
-            )
-        else:
-            dim_location = locate
-        
-        # 使用AddDimRotated替代AddDimAligned（与dimension.py保持一致）
-        dim = acad.model.AddDimRotated(p1, p2, dim_location, 0)
-        dim.Layer = "标注线"  # 直接设置对象的图层
-        dim.TextOverride = "%%c<>'"  # 设置为直径标注
-        
+        # 使用AddDimDiametric创建直径标注
+        dim = acad.model.AddDimDiametric(ChordPoint, FarChordPoint, leader_length)
+        dim.Layer = "标注线"  # 直接设置对象的图层     
         # 设置公差（如果有）
         if upper_tolerance != 0.0 or lower_tolerance != 0.0:
             # 如果上公差与下公差相等且都不为0，则使用对称公差
@@ -92,14 +83,17 @@ if __name__ == "__main__":
         # 定义参数
         center = APoint(0, 0)
         radius = 30
-        locate = APoint(0, -40)
+        angle1 = math.pi  # 垂直向下方向
         
         # 示例1: 使用极限公差（上下公差不相等）
-        circle1, dim1 = CD(acad, center, radius, locate, 0.02, -0.01)
+        leader_length1 = 40  # 引线长度
+        circle1, dim1 = CD(acad, center, radius, angle1, leader_length1, 0.02, -0.01)
         
         # 示例2: 使用对称公差（上下公差相等）
         center2 = APoint(100, 0)
-        circle2, dim2 = CD(acad, center2, radius, APoint(100, -40), 0.03, 0.03)
+        angle2 = math.pi  # 垂直向下方向
+        leader_length2 = 40  # 引线长度
+        circle2, dim2 = CD(acad, center2, radius, angle2, leader_length2, 0.03, 0.03)
         
         if circle1 and dim1 and circle2 and dim2:
             print("圆和标注创建成功")

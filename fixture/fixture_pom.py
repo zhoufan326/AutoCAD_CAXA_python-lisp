@@ -44,7 +44,7 @@ def draw_pom(self, parameter):
     DimLineLocation_A = A + APoint(0, 9)
     dim_list = [None]*6
     dim_list[0] = self.acad.model.AddDimRotated(A, A1, DimLineLocation_A, 0)
-    dim_list[0].TextOverride = "Φ<>"
+    dim_list[0].TextOverride = "%%c<>"
     dim_list[0].ToleranceDisplay = 2
     dim_list[0].ToleranceUpperLimit = 0.05
     dim_list[0].ToleranceLowerLimit = 0
@@ -52,14 +52,14 @@ def draw_pom(self, parameter):
     dim_list[0].ToleranceHeightScale = 0.7
     DimLineLocation_D1 = D1 + APoint(0,-9)
     dim_list[1] = self.acad.model.AddDimRotated(D1, D, DimLineLocation_D1, 0)
-    dim_list[1].TextOverride = "Φ<>"
+    dim_list[1].TextOverride = "%%c<>"
     DimLineLocation_C = C + APoint(0, -9)
     dim_list[2] = self.acad.model.AddDimRotated(B, C, DimLineLocation_C, 0)
     DimLineLocation_D = D + APoint(0, -19)
     dim_list[3] = self.acad.model.AddDimRotated(B,  D, DimLineLocation_D, 0)
     DimLineLocation_B = B + APoint(0, 19)
     dim_list[4] = self.acad.model.AddDimRotated(B,  B1, DimLineLocation_B, 0)
-    dim_list[4].TextOverride = "Φ<>"
+    dim_list[4].TextOverride = "%%c<>"
 
 
     return centerline

@@ -1,134 +1,121 @@
 # draw_main_view.py - 绘制主视图模块
 import math
 import time
-from pyautocad import APoint, aDouble
-from utils import LD, AD
+import sys
+import os
+import numpy as np
 
+# 添加当前目录到Python路径
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from pyautocad import APoint, aDouble
+from utils import LD, AD, CL
+from draw_bottom import bottom
 
 def draw_main_view(self):
     """绘制主视图
-    
-    Args:
-        self: DrawingOperations类的实例
     """
+
     if (self.drawing_type in ("XJMJM", "GPMXJ")) and (abs(self.radius) < 11 or self.chord_length < 18):
     # 这种情况下绘制的其实是丸片底座
-        self.y_U = self.chord_y - self.a  # 凹面圆弧底座连接轴的上横线纵坐标
-        self.y_M = self.y_U - self.b  # 凹面圆弧底座连接轴的下横线纵坐标
-        _draw_small_caliber_base(self)
-    else:    
-            if self.radius > 0:
-                _draw_main_view_positive_radius(self)
-            elif self.radius < 0:
-                _draw_main_view_negative_radius(self)
+        self.y_U = self.chord_y - self.a  
+        small_caliber_base(self)
+    elif  self.radius > 0:
+        positive_radius(self)
+        KC(self)
+    else:
+        negative_radius(self)
+        KC(self)
+    #判断是否绘制底座
+    if self.draw_bottom_part:
+        bottom(self)
+    # 绘制中心线
+    CL(self, self.chord_center+APoint(0, 15), APoint(self.center.x, self.y_L - 15))
+ 
 
-
-    
-    print("缩放到范围...")
     self.acad.doc.SendCommand("_.zoom _e ")
     time.sleep(1.0)  # 增加等待时间
 
+def KC(self):
+    """绘制开槽标注"""
+    if self.drawing_type in ("JZM_KC", "GPMJX"):
+        # 添加开槽标注
+        try:
+            arrow_pnt = APoint(0, self.radius) + self.center
+            baseline_pnt = arrow_pnt + APoint(25, 15)
+            pnts_array = np.array([arrow_pnt, baseline_pnt]).flatten()
 
-def _draw_main_view_positive_radius(self):
-    """绘制正半径主视图（凸圆弧）
-    
-    Args:
-        self: DrawingOperations类的实例
+            leader = self.acad.model.AddMLeader(pnts_array, 0)
+            leader.DoglegLength = 8
+            leader.LandingGap = 3
+            leader.TextString = "开槽"
+            leader.Layer = "标注线"
+        except Exception as e:
+            print(f"绘制开槽标注时发生错误: {e}")
+
+def positive_radius(self):
+    """绘制正半径主视图
     """
-    self.set_layer("轮廓线")
-    draw_polylines_P(self)
-
-    # 画直线，对于凸圆弧，只画对称轴右侧的线
-    # 使用LD函数绘制上口径直线并添加标注
-    line1, dim1 = LD(self.acad, APoint(self.center.x, self.chord_y), self.right_point, APoint(self.center.x + self.chord_length/2, self.chord_y + 5))
-    dim1.TextOverride = "%%c<>'"
-    # 如果是凹圆弧，使用半标注
-    if self.radius <= 0:
-        dim1.StyleName = "ZqStandard$0"
+    self.acad.model.AddLine(APoint(self.center.x, self.chord_y), self.right_point)
     self.acad.model.AddLine(APoint(self.center.x, self.y_U), APoint(self.center.x + 5, self.y_U))
     self.acad.model.AddLine(APoint(self.center.x, self.y_M), APoint(self.center.x + 5, self.y_M))
    
+    self.acad.model.AddLine(self.left_point, APoint(self.left_point.x, self.y_U))
+    self.acad.model.AddLine(APoint(self.left_point.x, self.y_U), APoint(self.center.x - 5, self.y_U))
+    self.acad.model.AddLine(self.right_point, APoint(self.right_point.x, self.y_U))
+    self.acad.model.AddLine(APoint(self.right_point.x, self.y_U), APoint(self.center.x + 5, self.y_U))
+
     # 使用AD函数绘制圆弧并添加标注
-    arc, dim_arc = AD(self.acad, self.center, self.abs_radius, math.radians(self.right_angle), math.radians(self.left_angle), APoint(self.center.x, self.center.y - self.abs_radius - 10), layer="轮廓线")
+    arc, dim_arc = AD(self.acad, self.center, self.radius, self.start_angle, self.end_angle, leader_length=20, chord_angle=self.start_angle+0.6*self.theta)
+    if dim_arc is not None:
+        dim_arc.TextOverride = "凸<>"
+    return arc
+def negative_radius(self):
+    """绘制负半径主视图
+    """
+    locationPoint = self.chord_center + APoint(0, self.half_chordN)
+    line1, dim1 = LD(self.acad, self.left_pointN, self.right_pointN, locationPoint)
+    if dim1 is not None:
+        dim1.TextOverride = "%%c<>'"
+    locationPoint2 = self.chord_center + APoint(0, 7)
+    line2, dim2 = LD(self.acad, self.left_point, self.right_point, locationPoint2)
+    if dim2 is not None:
+        dim2.TextOverride = "%%c<>'"
+        dim2.StyleName = "ZqStandard$0"  # 设置为半标注
+
+    line3 = self.acad.model.AddLine(APoint(self.center.x, self.y_U2), APoint(self.center.x + self.half_chordN, self.y_U2))
+    line3.Layer = "轮廓线"
+    
+    arc, dim_arc = AD(self.acad, self.center, self.radius, self.start_angle, math.pi*1.5, chord_angle=self.start_angle+self.theta/3)
+    if dim_arc is not None:
+        dim_arc.TextOverride = "凹<>"
+    
+    line4 = self.acad.model.AddArc(self.center, self.radius2, math.pi*1.5 + self.theta_small, math.pi*1.5 + self.theta_big)
+    line4.Layer = "轮廓线"
+    line5 = self.acad.model.AddArc(self.center, self.radius2, math.pi*1.5 - self.theta_big, math.pi*1.5 - self.theta_small)
+    line5.Layer = "轮廓线"
+
+    arc1 = self.acad.model.AddLine(self.left_pointN, APoint(self.left_pointN.x, self.y_U2))
+    arc1.Layer = "轮廓线"
+    arc2 = self.acad.model.AddLine(self.right_pointN, APoint(self.right_pointN.x, self.y_U2))
+    arc2.Layer = "轮廓线"
     
     return arc
 
 
-def _draw_main_view_negative_radius(self):
-    """绘制负半径主视图（凹圆弧）
-    
-    Args:
-        self: DrawingOperations类的实例
-    """
-    self.set_layer("轮廓线")
-   
-    # 画弦和直线，统一剖面线到左侧，所以这里绘制右侧直线
-    # 使用LD函数绘制外口径直线并添加标注
-    line1, dim1 = LD(self.acad, self.left_pointN, self.right_pointN, APoint(self.center.x, self.chord_y - self.a - 5))
-    dim1.TextOverride = "%%c<>'"
-    # 使用LD函数绘制纵向线段并添加标注
-    line2, dim2 = LD(self.acad, APoint(self.center.x, self.chord_y - self.a), APoint(self.center.x + self.half_chordN, self.chord_y - self.a), APoint(self.center.x + self.half_chordN + 5, self.chord_y - self.a))
-    self.acad.model.AddLine(APoint(self.center.x, self.y_U), APoint(self.center.x + 5, self.y_U))
-    self.acad.model.AddLine(APoint(self.center.x, self.y_M), APoint(self.center.x + 5, self.y_M))
-    
-    # 使用AD函数绘制圆弧并添加标注
-    arc, dim_arc = AD(self.acad, self.center, self.abs_radius, math.radians(self.left_angle), math.radians(270), APoint(self.center.x, self.center.y - self.abs_radius - 10), layer="轮廓线")
-    
-    # 使用AD函数绘制下方圆弧
-    # 右半边的圆弧
-    arc_down, dim_arc_down = AD(self.acad, self.center, self.radius2, math.pi*1.5 + self.theta_small, math.pi*1.5 + self.theta_big, APoint(self.center.x + self.radius2 + 10, self.center.y), layer="轮廓线")
-    # 左半边的圆弧
-    arc_down2, dim_arc_down2 = AD(self.acad, self.center, self.radius2, math.pi*1.5 - self.theta_big, math.pi*1.5 - self.theta_small, APoint(self.center.x - self.radius2 - 10, self.center.y), layer="轮廓线")
-    
-    point_l = self.left_pointN
-    point_r = self.right_pointN
-
-    # 绘制两条连接圆弧的竖线
-    self.acad.doc.SendCommand(f'_LINE {arc_down2.StartPoint[0]},{arc_down2.StartPoint[1]} {point_l.x},{point_l.y} \n')
-    self.acad.doc.SendCommand(f'_LINE {point_r.x},{point_r.y} {arc_down.EndPoint[0]},{arc_down.EndPoint[1]} \n')
-    
 
     
-    return arc, arc_down, arc_down2
-
-
-def draw_polylines_P(self):
-    """绘制正半径多段线
+        
     
-    Args:
-        self: DrawingOperations类的实例
-    """
-    self.set_layer("轮廓线")
     
-    # 左侧多段线
-    points = [
-        APoint(self.left_point.x, self.left_point.y),
-        APoint(self.left_point.x, self.y_U),
-        APoint(self.center.x - 5, self.y_U), 
-    ]
-    poly_points = [j for i in points for j in i]
-    poly_points = aDouble(poly_points)
-    self.acad.model.AddPolyLine(poly_points)
-    
-    # 右侧多段线
-    points = [
-        APoint(self.right_point.x, self.right_point.y), 
-        APoint(self.right_point.x, self.y_U),
-        APoint(self.center.x + 5, self.y_U), 
-    ]
 
-    poly_points = [j for i in points for j in i]
-    poly_points = aDouble(poly_points)
-    self.acad.model.AddPolyLine(poly_points)
- 
 
-def _draw_small_caliber_base(self):
+
+  
+
+
+def small_caliber_base(self):
     """绘制小口径成型丸片的底座
-    
-    Args:
-        self: DrawingOperations类的实例
     """
-   
     points = [None] * 10
     
     # 创建left_point和right_point对象
@@ -143,8 +130,6 @@ def _draw_small_caliber_base(self):
         right_point.x = self.right_point.x
     left_point.y = self.y_U
     right_point.y = self.y_U
-
-
 
     # 保持原始绘制点顺序，重新分配数组索引
     points[0] = APoint(-5, left_point.y)                 # 第1个点
@@ -161,13 +146,12 @@ def _draw_small_caliber_base(self):
     poly_points = [j for i in points for j in i]
     poly_points = aDouble(poly_points)
 
-
-    self.set_layer("轮廓线")
+    set_layer("轮廓线")
     self.acad.model.AddPolyLine(poly_points)
-    self.acad.model.AddLine(APoint(0,left_point.y + 2), points[6])
-    self.set_layer("标注线")
+    self.acad.model.AddLine(APoint(0, left_point.y + 2), points[6])
+    set_layer("标注线")
     dim45 = self.acad.model.AddDimAligned(
-        points[4], points[5], APoint((points[4].x + points[5].x) / 2, points[4].y +2), 
+        points[4], points[5], APoint((points[4].x + points[5].x) / 2, points[4].y + 2), 
     )
     dim45.ToleranceDisplay, dim45.ToleranceUpperLimit, dim45.ToleranceLowerLimit = 2, 0, 0.02
     dim45.TolerancePrecision, dim45.ToleranceHeightScale = 3, 0.7

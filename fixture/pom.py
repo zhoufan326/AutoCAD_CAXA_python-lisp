@@ -94,12 +94,12 @@ class POM:
             DimLineLocation_G = G + APoint(0, 9)
 
             dim_G_G1 = self.acad.model.AddDimRotated(G, G1, DimLineLocation_G, 0)
-            dim_G_G1.TextOverride = "Φ<>"
+            dim_G_G1.TextOverride = "%%c<>"
     
             # 添加F-F1线段直径标注，定位点比G-G1标注再上方9个单位
             DimLineLocation_F = G + APoint(0, 18)
             dim_F_F1 = self.acad.model.AddDimRotated(F, F1, DimLineLocation_F, 0)
-            dim_F_F1.TextOverride = "Φ<>"
+            dim_F_F1.TextOverride = "%%c<>"
             DimLineLocation_F2 = F1 + APoint(0.75*diameter, 0)
             dim_G1_F1 = self.acad.model.AddDimRotated(G1, F1, DimLineLocation_F2, math.radians(90))
             # 将文字放置在尺寸线右侧
@@ -128,10 +128,10 @@ class POM:
         #添加总口径标注
         DimLineLocation_E = E + APoint(0, 25)
         dim_list[3] = self.acad.model.AddDimRotated(E, E1, DimLineLocation_E, 0)
-        dim_list[3].TextOverride = "Φ<>"
+        dim_list[3].TextOverride = "%%c<>"
         DimLineLocation_B = B + APoint(0, -30)
         dim_list[4] = self.acad.model.AddDimRotated(B, B1, DimLineLocation_B, 0)
-        dim_list[4].TextOverride = "Φ<>"
+        dim_list[4].TextOverride = "%%c<>"
         dim_list[4].ToleranceDisplay = 2
         dim_list[4].ToleranceUpperLimit = 0.15
         dim_list[4].ToleranceLowerLimit = -0.1

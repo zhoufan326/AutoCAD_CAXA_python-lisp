@@ -6,8 +6,10 @@
 """
 
 from pyautocad import APoint
+from .retry_decorator import safe_acad_retry
 
 
+@safe_acad_retry(max_retries=5, delay=1.0, name="绘制带标注的直线")
 def LD(acad, point1, point2, locate, upper_tolerance=0.0, lower_tolerance=0.0, line_layer="轮廓线"):
     """绘制两点间的直线并创建对齐标注
     
@@ -24,6 +26,16 @@ def LD(acad, point1, point2, locate, upper_tolerance=0.0, lower_tolerance=0.0, l
         tuple: (直线对象, 标注对象)
     """
     try:
+        # 检查acad对象是否有效
+        if acad is None:
+            print("绘制带标注的直线时发生错误: acad对象为None")
+            return None, None
+            
+        # 检查acad.model是否可用
+        if not hasattr(acad, 'model'):
+            print("绘制带标注的直线时发生错误: acad.model不可用")
+            return None, None
+            
         # 不通过ActiveLayer，直接绘制直线并设置图层
         line = acad.model.AddLine(point1, point2)
         line.Layer = line_layer  # 直接设置对象的图层

@@ -3,6 +3,7 @@ import math
 from pyautocad import APoint, aDouble
 from dimension import dia
 from utils import LD, AD, CD, set_layer
+from calculator.arc_angle import calculate_arc_parameter
 
 
 def draw_top_view(self):
@@ -14,31 +15,23 @@ def draw_top_view(self):
     """
     radius = self.radius
     # 中心点（用于俯视图），使用 geometry 中计算的 center2
-    center_top = APoint(0, -40) + self.center2
+    center_top = APoint(0, -self.half_chord - 10) + self.center2
     
     # 使用CD函数绘制中心小圆并添加标注
     leader_length = 5
     circle, dim_circle = CD(self.acad, center_top, 4, -math.pi/6, leader_length, layer="虚线")
     circle.LinetypeScale = 0.2
-    dim_circle.Layer = "虚线"
+    circle.Layer = "虚线"
     circle.Update()
     # 中心圆弧,优弧
     radius_down2 = 9
     chord_length2 = 6
-    half_chord2 = chord_length2 / 2
-    half_theta_rad2 = math.asin(half_chord2 / radius_down2)
-    chord_to_center = radius_down2 * math.cos(half_theta_rad2)
-    l = APoint(-half_chord2, chord_to_center) + center_top
-    r = APoint(half_chord2, chord_to_center) + center_top
-
-    right_angle2 = 2.5*math.pi - half_theta_rad2
-    left_angle2 = math.pi/2 + half_theta_rad2
-    
+    start_angle2, end_angle2, l, r = calculate_arc_parameter(center_top, chord_length2, radius_down2, "horizontal")
     if self.half_chord + 1 >= 9:
-        # 使用AD函数绘制中心圆弧
-        arc3=self.acad.model.AddArc(center_top, radius_down2, left_angle2, right_angle2)
+        # 使用AD函数绘制中心圆弧,优弧的起始角和终止角是反的
+        arc3=self.acad.model.AddArc(center_top, radius_down2, end_angle2, start_angle2)
         # 使用LD函数绘制优弧的连接直线并添加标注
-        line1, dim1 = LD(self.acad, l, r, APoint(l.x, l.y + 1), line_layer="虚线")
+        line1, dim1 = LD(self.acad, l, r, APoint(l.x, l.y + 3), line_layer="虚线")
         # 设置line1和arc3的线型比例为0.2
         if arc3 is not None:
             arc3.LinetypeScale = 0.2

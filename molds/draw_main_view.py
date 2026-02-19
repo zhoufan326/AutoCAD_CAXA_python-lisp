@@ -75,11 +75,11 @@ def negative_radius(self):
     locationPoint = self.chord_center + APoint(0, self.half_chordN)
     line1, dim1 = LD(self.acad, self.left_pointN, self.right_pointN, locationPoint)
     if dim1 is not None:
-        dim1.TextOverride = "%%c<>'"
+        dim1.TextOverride = "%%c<>"
     locationPoint2 = self.chord_center + APoint(0, 7)
     line2, dim2 = LD(self.acad, self.left_point, self.right_point, locationPoint2)
     if dim2 is not None:
-        dim2.TextOverride = "%%c<>'"
+        dim2.TextOverride = "%%c<>"
         dim2.StyleName = "ZqStandard$0"  # 设置为半标注
 
     line3 = self.acad.model.AddLine(APoint(self.center.x, self.y_U2), APoint(self.center.x + self.half_chordN, self.y_U2))

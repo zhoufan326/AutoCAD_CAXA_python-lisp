@@ -36,7 +36,7 @@ def draw_top_view(self):
     
     if self.half_chord + 1 >= 9:
         # 使用AD函数绘制中心圆弧
-        arc3=self.acad.AddArc(center_top, radius_down2, left_angle2, right_angle2)
+        arc3=self.acad.model.AddArc(center_top, radius_down2, left_angle2, right_angle2)
         # 使用LD函数绘制优弧的连接直线并添加标注
         line1, dim1 = LD(self.acad, l, r, APoint(l.x, l.y + 1), line_layer="虚线")
         # 设置line1和arc3的线型比例为0.2

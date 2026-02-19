@@ -10,9 +10,9 @@ def bottom(self):
     """
     
     # 使用AD函数绘制中心小圆弧
-    arc, dim_arc = AD(self.acad, self.center2, 4, math.pi/2, math.pi, 10,chord_angle=0.75*math.pi)
-    #将标注定位点拉伸出来
-    dim_arc.TextPosition = APoint(self.center2.x + 10, self.center2.y - 10)
+    arc, dim_arc = AD(self.acad, self.center2, 4, math.pi/2, math.pi, 5,chord_angle=0.75*math.pi)
+    #将标注定位点拉伸出来，注意估算好定位。
+    dim_arc.TextPosition = APoint(self.center2.x + 1, self.center2.y - 1)
     #连接轴和底座的宽度
     width_Up=10
     width_Mid=18
@@ -46,7 +46,7 @@ def bottom(self):
         locate3=right[3]+APoint(0, -17)
         line3,dim3 = LD(self.acad, left[3], right[3], locate3,-0.02,0.04)
         if dim3 is not None:
-            dim3.TextOverride = "%%c<>'"
+            dim3.TextOverride = "%%c<>"
             dim3.Update()
         
         line4 = self.acad.model.AddLine(APoint(3, self.y_M), APoint(3, self.y_L))
@@ -101,7 +101,7 @@ def bottom(self):
    
     #连接轴直径标注
     if self.b != 0: 
-        dim5 = self.acad.model.AddDimAligned(left[0],right[0], left[0]+APoint(4,0))
+        dim5 = self.acad.model.AddDimAligned(left[0],right[0], right[0]+APoint(4,-2))
         dim5.TextOverride = "%%c<>"
         dim5.Layer = "标注线"
     #总高标注

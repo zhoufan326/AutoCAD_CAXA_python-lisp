@@ -9,10 +9,6 @@ def bottom(self):
     """绘制底座部分
     """
     
-    # 使用AD函数绘制中心小圆弧
-    arc, dim_arc = AD(self.acad, self.center2, 4, math.pi/2, math.pi, 5,chord_angle=0.75*math.pi)
-    #将标注定位点拉伸出来，注意估算好定位。
-    dim_arc.TextPosition = APoint(self.center2.x + 1, self.center2.y - 1)
     #连接轴和底座的宽度
     width_Up=10
     width_Mid=18
@@ -37,6 +33,10 @@ def bottom(self):
         right[2] = APoint(self.center.x + 9, self.y_M)
         right[3] = APoint(self.center.x + 9, self.y_L)
         lowpoint = right[3]
+        #绘制右侧非剖面的轮廓直线
+        self.acad.model.AddLine(APoint(self.center.x, self.y_U), right[0])
+        self.acad.model.AddLine(APoint(self.center.x, self.y_M), right[1])
+
         # 使用多段线连接右侧4个点
         poly_points = [j for i in right[:4] for j in i]
         poly_points = aDouble(poly_points)
@@ -76,6 +76,10 @@ def bottom(self):
         right[3] = APoint(self.center.x + width_Mid/2, self.y_L)
         right[4] = APoint(self.center.x + width_Low/2, self.y_L)
         lowpoint = right[4]
+        self.acad.model.AddLine(APoint(self.center.x, self.y_U), right[0])
+        self.acad.model.AddLine(APoint(self.center.x, self.y_M), right[1])
+        self.acad.model.AddLine(APoint(self.center.x, self.y_M2), right[3])
+        
         # 使用多段线连接右侧5个点
         poly_points = [j for i in right[:5] for j in i]
         poly_points = aDouble(poly_points)
@@ -98,10 +102,15 @@ def bottom(self):
         if dim4 is not None:
             dim4.TextOverride = "%%C<>"
             dim4.Update()
-   
+    
+    # 使用AD函数绘制底部圆槽
+    arc, dim_arc = AD(self.acad, self.center2, 4, math.pi/2, math.pi, 7,chord_angle=0.75*math.pi)
+    dim_arc.TextPosition = APoint(self.center2.x + 3, self.center2.y - 3)
+
     #连接轴直径标注
     if self.b != 0: 
-        dim5 = self.acad.model.AddDimAligned(left[0],right[0], right[0]+APoint(4,-2))
+        dim5_locate=right[0]+APoint(14,-4)
+        dim5 = self.acad.model.AddDimAligned(left[0],right[0], dim5_locate)
         dim5.TextOverride = "%%c<>"
         dim5.Layer = "标注线"
     #总高标注

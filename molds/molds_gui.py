@@ -104,9 +104,7 @@ def start_drawing():
         run_wp_from_params(r, d, [g - 6 for g in wp_groups], designer_name=designer_name)
         total_tasks += len(wp_groups)
     
-    if total_tasks > 0:
-        messagebox.showinfo("成功", f"已启动 {total_tasks} 个图形组的绘制任务！")
-    else:
+    if total_tasks == 0:
         messagebox.showwarning("警告", "没有选择任何有效的图形组！")
 
 

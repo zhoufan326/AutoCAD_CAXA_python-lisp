@@ -10,7 +10,7 @@ from .retry_decorator import safe_acad_retry
 
 
 @safe_acad_retry(max_retries=5, delay=1.0, name="绘制带标注的直线")
-def LD(acad, point1, point2, locate, upper_tolerance=0.0, lower_tolerance=0.0, line_layer="轮廓线"):
+def LD(acad, point1, point2, locate, upper_tolerance=0.0, lower_tolerance=0.0, line_layer="轮廓线",dim_type="Aligned",dim_angle=0):
     """绘制两点间的直线并创建对齐标注
     
     参数:
@@ -21,7 +21,9 @@ def LD(acad, point1, point2, locate, upper_tolerance=0.0, lower_tolerance=0.0, l
         upper_tolerance: 上公差，默认 0.0
         lower_tolerance: 下公差，默认 0.0
         line_layer: 直线图层名称，默认 "轮廓线"，可设置为 "虚线"
-    
+        dim_type: 标注类型，默认 "Aligned"，可设置为 "Rotated"
+        dim_angle: 标注角度，默认 0，仅在 dim_type 为 "Rotated" 时有效
+        
     返回:
         tuple: (直线对象, 标注对象)
     """
@@ -41,8 +43,13 @@ def LD(acad, point1, point2, locate, upper_tolerance=0.0, lower_tolerance=0.0, l
         line.Layer = line_layer  # 直接设置对象的图层
         line.Update()
         
-        # 不通过ActiveLayer，直接创建标注并设置图层
-        dim = acad.model.AddDimAligned(point1, point2, locate)
+        # 创建标注并设置图层
+        if dim_type == "Aligned":
+            dim = acad.model.AddDimAligned(point1, point2, locate)
+        elif dim_type == "Rotated":
+            dim = acad.model.AddDimRotated(point1, point2, locate, dim_angle)
+            
+            
         dim.Layer = "标注线"  # 直接设置对象的图层
         
         # 设置公差（如果有）

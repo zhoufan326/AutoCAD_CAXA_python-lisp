@@ -1,15 +1,19 @@
 # geometry.py
 import math
+from typing import Any, Dict
 from pyautocad import APoint
 
-def calculate_geometry(radius, chord_length, a=3, b=6, c=25):
+def calculate_geometry(location, radius: float, chord_length: float, a: float = 3, b: float = 6, c: float = 25) -> Dict[str, Any]:
     """计算所有几何参数 
     a为模子的厚度,b为底座中间连接轴的高度,c为底座的高度。"""
     # 边界情况检查
     if chord_length > 2 * abs(radius):
         raise ValueError("弦长不能大于直径")
     #----------------------------重要参数----------------------------#
-    chord_center=APoint(0,45) #定义模子圆弧上弦的位置   
+    #定义模子的位置
+    chord_center=location #定义模子圆弧上弦的位置   
+    
+    
     half_chord = chord_length / 2
     half_theta_rad = math.asin(half_chord / abs(radius))
     half_theta_deg = math.degrees(half_theta_rad)

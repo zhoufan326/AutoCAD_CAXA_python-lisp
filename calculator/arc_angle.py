@@ -19,11 +19,11 @@ def calculate_arc_parameter(center,chord_length, radius, direction):
             end_angle = 1.5*math.pi - half_theta_rad
     elif direction == "vertical":
         if radius > 0:
-            start_angle = math.pi/2 - half_theta_rad
-            end_angle = math.pi/2 + half_theta_rad
+            start_angle =  - half_theta_rad
+            end_angle =  + half_theta_rad
         else:
-            start_angle = 1.5*math.pi + half_theta_rad
-            end_angle = 1.5*math.pi - half_theta_rad
+            start_angle = math.pi - half_theta_rad
+            end_angle = math.pi + half_theta_rad
     else:
         raise ValueError("Invalid direction. Use 'horizontal' or 'vertical'.")
     start_point=APoint(center.x+radius_abs*math.cos(start_angle),center.y+radius_abs*math.sin(start_angle))

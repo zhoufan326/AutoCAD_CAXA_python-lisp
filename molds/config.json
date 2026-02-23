@@ -1,12 +1,12 @@
 {
-  "r_value": "60.46",
-  "d_value": "19.2",
-  "a_value": 3.0,
-  "b_value": 6.0,
-  "c_value": 25.0,
+  "r_value": "8.997",
+  "d_value": "10.5",
+  "a_value": "3.0",
+  "b_value": "6.0",
+  "c_value": "25.0",
   "designer_name": "周凡",
   "selected_groups": [
-    1
+    6
   ],
   "draw_bottom": true
 }

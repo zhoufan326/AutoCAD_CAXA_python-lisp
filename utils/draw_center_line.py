@@ -9,11 +9,11 @@ from pyautocad import APoint
 from .layer import set_layer
 
 
-def CL(self, point1, point2):
+def CL(acad, point1, point2):
     """绘制中心线
     
     参数:
-        self: DrawingOperations 实例（包含 acad 对象）
+        acad: AutoCAD 对象
         point1: 中心线起点坐标 (APoint 对象)
         point2: 中心线终点坐标 (APoint 对象)
     
@@ -25,7 +25,7 @@ def CL(self, point1, point2):
         set_layer("中心线")
         
         # 绘制中心线
-        center_line = self.acad.model.AddLine(point1, point2)
+        center_line = acad.model.AddLine(point1, point2)
         center_line.Color = 1
         center_line.Linetype = "CENTER"
         center_line.LinetypeScale = 0.1  # 使虚线更密集

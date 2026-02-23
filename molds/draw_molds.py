@@ -16,10 +16,10 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from geometry import calculate_geometry
+
 from drawing_operations import DrawingOperations
 from Tool_calculation import SwingMachineToolingCalculator
-from utils import insert_block, set_layer, create_hatch, generate_filename, save_drawing, date_name, safe_acad_retry
+from utils import insert_block, set_layer, create_hatch, generate_filename, save_drawing, date_name, safe_acad_retry, _open_template
 
 # ─── 常量 ────────────────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -60,21 +60,21 @@ DRAWING_TYPES = {
 }
 
 # ─── 辅助函数 ────────────────────────────────────────────────────────────
-@safe_acad_retry(3, 1.0, "打开模板")
-def _open_template(path: str):
-    """打开 AutoCAD 模板"""
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"模板文件不存在: {path}")
-    
-    # 创建AutoCAD实例
-    acad = Autocad(create_if_not_exists=True)
-    time.sleep(0.5)
-    acad.app.Documents.Add(path)
+
+
+
+
+
+
+
+
+
+
   
 @safe_acad_retry(3, 0.8, "添加剖面线")
-def _add_hatch(acad, geometry: Dict):
+def _add_hatch(acad, y_connect: float):
     """添加剖面线"""
-    create_hatch(acad, -3, geometry["y_connect"] - 3)
+    create_hatch(acad, -3, y_connect - 3)
     time.sleep(0.6)
 
 @safe_acad_retry(4, 1.0, "插入图块")
@@ -136,17 +136,15 @@ def batch_draw_molds(
 
                 acad = None
                 try:
-                    # 计算几何参数，创建绘图操作实例
-                    geometry = calculate_geometry(radius, chord_length, a_value, b_value, c_value)
+                    
                     # 打开模板
                     _open_template( DEFAULT_TEMPLATE_PATH)
                     set_layer("轮廓线")
                     
-                    ops = DrawingOperations(geometry, dt, draw_bottom)
-                    
+                    ops = DrawingOperations(radius, chord_length, a_value, b_value, c_value, dt, draw_bottom)
                     ops.draw_views()
                     set_layer("剖面线")
-                    _add_hatch(ops.acad, geometry)  # 使用ops内部的acad实例
+                    _add_hatch(ops.acad, ops.y_connect)  # 使用ops内部的acad实例
                     set_layer("轮廓线")
                     _insert_blocks(ops.acad, dt, designer_name)  # 使用ops内部的acad实例
                     filename = generate_filename(radius, chord_length, drawing_type=dt)

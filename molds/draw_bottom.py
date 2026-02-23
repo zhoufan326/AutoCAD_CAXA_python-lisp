@@ -1,5 +1,6 @@
 # draw_bottom.py - 绘制底座模块
 import math
+import numpy as np
 from pydoc import locate
 from pyautocad import APoint, aDouble
 from utils import AD,LD
@@ -33,10 +34,10 @@ def bottom(self):
         locate2=left[2]+APoint(-1, 0)
         line2,dim2 = LD(self.acad, left[2], left[3], locate2)
 
-        right[0] = APoint(self.center.x + 5, self.y_connect)
-        right[1] = APoint(self.center.x + 5, self.y_Up)
-        right[2] = APoint(self.center.x + 9, self.y_Up)
-        right[3] = APoint(self.center.x + 9, self.y_Low)
+        right[0] = APoint(self.center.x + width_Connect/2, self.y_connect)
+        right[1] = APoint(self.center.x + width_Connect/2, self.y_Up)
+        right[2] = APoint(self.center.x + width_Up/2, self.y_Up)
+        right[3] = APoint(self.center.x + width_Low/2, self.y_Low)
         lowpoint = right[3]
         #绘制右侧非剖面的轮廓直线
         self.acad.model.AddLine(APoint(self.center.x, self.y_connect), right[0])
@@ -61,29 +62,28 @@ def bottom(self):
         width_Connect=10
         width_Up=14
         width_Low=10
-        self.acad.model.AddLine(APoint(0, self.y_Up2), APoint(width_Up/2, self.y_Up2))
         
         left[0] = APoint(self.center.x - width_Connect/2, self.y_connect)
         left[1] = APoint(self.center.x - width_Connect/2, self.y_Up)
         left[2] = APoint(self.center.x - width_Up/2, self.y_Up)
+        self.acad.model.AddLine(left[1], left[2])
         left[3] = APoint(self.center.x - width_Up/2, self.y_Up2)
         left[4] = APoint(self.center.x - width_Low/2, self.y_Low)
-        line1,dim1 = LD(self.acad, left[0], left[1], left[0]-APoint(-7, 0))
-        self.acad.model.AddLine(left[1], left[2])
-        locate2=left[2]-APoint(-7, 0)
+        
+        locate1=left[1]+APoint(-7, 0)
+        locate2=left[2]+APoint(-7, 0)
+        locate3=left[4]+APoint(-7, 0)
+        line1,dim1 = LD(self.acad, left[0], left[1], locate1)
         line2,dim2 = LD(self.acad, left[2], left[3], locate2)
-        locate3=left[4]-APoint(-7, 0)
-        line3,dim3 = LD(self.acad, left[3], left[4], locate3)
+        line3,dim3 = LD(self.acad, left[3], left[4], locate3,dim_type="Rotated",dim_angle=math.pi/2)
         
         right[0] = APoint(self.center.x + width_Connect/2, self.y_connect)
         right[1] = APoint(self.center.x + width_Connect/2, self.y_Up)
         right[2] = APoint(self.center.x + width_Up/2, self.y_Up)
-        right[3] = APoint(self.center.x + width_Up/2, self.y_Low)
+        right[3] = APoint(self.center.x + width_Up/2, self.y_Up2)
         right[4] = APoint(self.center.x + width_Low/2, self.y_Low)
         lowpoint = right[4]
-        self.acad.model.AddLine(APoint(self.center.x, self.y_connect), right[0])
-        self.acad.model.AddLine(APoint(self.center.x, self.y_Up), right[1])
-        self.acad.model.AddLine(APoint(self.center.x, self.y_Up2), right[3])
+
         
         # 使用多段线连接右侧5个点
         poly_points = [j for i in right[:5] for j in i]
@@ -91,35 +91,47 @@ def bottom(self):
         polyline = self.acad.model.AddPolyLine(poly_points)
         polyline.Layer = "轮廓线"
         
+        locate4=right[4]-APoint(0, 15)
+        dim4 = self.acad.model.AddDimAligned(left[3], right[3], locate4)
+        dim4.TextOverride = "%%C<>"
+        dim4.Layer = "标注线"
+        dim4.Update()
+        
+        locate5=right[4]+APoint(0, -8)
+        line5,dim5 = LD(self.acad, left[4], right[4], locate5,-0.02,0.04)
+        dim5.TextOverride = "%%c<>"
+        dim5.Update()
+
 
         # 添加锥度标注
-        arrow_pnt = APoint((width_Up+width_Low)/2, (self.y_Low + self.y_Up) / 2)
-        baseline_pnt = APoint((width_Up+width_Low)/2+10, (self.y_Low + self.y_Up) / 2 - 5)
+        arrow_pnt = APoint((width_Up+width_Low)/4, (self.y_Low + self.y_Up) / 2)
+        baseline_pnt = APoint((width_Up+width_Low)/4+10, (self.y_Low + self.y_Up) / 2 - 5)
         
         pnts_array = np.array([arrow_pnt, baseline_pnt]).flatten()
+        pnts_array = aDouble(pnts_array)
         leader = self.acad.model.AddMLeader(pnts_array, 0)
         leader.DoglegLength = 8
         leader.LandingGap = 3
         leader.TextString = "锥度1：10"
         leader.Layer = "标注线"
         
-        line4,dim4 = LD(self.acad, left[2], right[2], right[4]-APoint(0, 5),0.15,-0.05)  
-        if dim4 is not None:
-            dim4.TextOverride = "%%C<>"
-            dim4.Update()
-    
+        #绘制右侧非剖面的轮廓直线
+        self.acad.model.AddLine(APoint(self.center.x, self.y_connect), right[0])
+        self.acad.model.AddLine(APoint(self.center.x, self.y_Up), right[1])
+        self.acad.model.AddLine(APoint(self.center.x, self.y_Up2), right[3])
+        
     # 使用AD函数绘制底部圆槽
     arc, dim_arc = AD(self.acad, self.center2, 4, math.pi/2, math.pi, 7,locate_angle=0.75*math.pi)
     dim_arc.TextPosition = APoint(self.center2.x + 3, self.center2.y - 3)
 
     #连接轴直径标注
     if self.b != 0: 
-        dim5_locate=right[0]+APoint(14,-4)
-        dim5 = self.acad.model.AddDimAligned(left[0],right[0], dim5_locate)
-        dim5.TextOverride = "%%c<>"
-        dim5.TextPosition = right[0]+APoint(10,  -4)
+        dim_connect_locate=right[0]+APoint(14,-4)
+        dim_connect = self.acad.model.AddDimAligned(left[0],right[0], dim_connect_locate)
+        dim_connect.TextOverride = "%%c<>"
+        dim_connect.TextPosition = right[0]+APoint(10,  -4)
        
-        dim5.Layer = "标注线"
+        dim_connect.Layer = "标注线"
     #总高标注
     self.arc_center_point = self.center + APoint(0, self.radius)
     dim_total = self.acad.model.AddDimRotated(self.arc_center_point, lowpoint, self.right_pointN+APoint(5, 0),math.pi/2)

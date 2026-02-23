@@ -12,6 +12,8 @@ from .save_drawing import save_drawing
 from .date_name import date_name
 from .draw_center_line import CL
 from .retry_decorator import safe_acad_retry
+from .open_template import _open_template
+from .initial_cad_connection import _initialize_acad
 __all__ = [
     'set_layer',
     'create_hatch',
@@ -24,5 +26,7 @@ __all__ = [
     'save_drawing',
     'date_name',
     'CL',
-    'safe_acad_retry'
+    'safe_acad_retry',
+    '_open_template',
+    '_initialize_acad'
 ]

@@ -43,6 +43,7 @@ def KC(self):
         arrow_pnt = APoint(0, self.radius) + self.center
         baseline_pnt = arrow_pnt + APoint(25, 15)
         pnts_array = np.array([arrow_pnt, baseline_pnt]).flatten()
+        pnts_array = aDouble(pnts_array)
         leader = self.acad.model.AddMLeader(pnts_array, 0)
         leader.DoglegLength = 8
         leader.LandingGap = 3
@@ -55,14 +56,15 @@ def positive_radius(self):
     self.acad.model.AddLine(APoint(self.center.x, self.chord_y), self.right_point)
     self.acad.model.AddLine(APoint(self.center.x, self.y_connect), APoint(self.center.x + 5, self.y_connect))
     self.acad.model.AddLine(APoint(self.center.x, self.y_Up), APoint(self.center.x + 5, self.y_Up))
-   
-    self.acad.model.AddLine(self.left_point, APoint(self.left_point.x, self.y_connect))
+    locate=self.left_point+APoint(-7, 0)
+    LD(self.acad, self.left_point, APoint(self.left_point.x, self.y_connect), locate)
+
     self.acad.model.AddLine(APoint(self.left_point.x, self.y_connect), APoint(self.center.x - 5, self.y_connect))
     self.acad.model.AddLine(self.right_point, APoint(self.right_point.x, self.y_connect))
     self.acad.model.AddLine(APoint(self.right_point.x, self.y_connect), APoint(self.center.x + 5, self.y_connect))
 
     # 使用AD函数绘制圆弧并添加标注
-    arc, dim_arc = AD(self.acad, self.center, self.radius, self.start_angle, self.end_angle, leader_length=20, locate_angle=self.start_angle+0.6*self.theta)
+    arc, dim_arc = AD(self.acad, self.center, self.radius, self.start_angle, self.end_angle, leader_length=20, locate_angle=self.start_angle+1.5*self.theta)
     if dim_arc is not None:
         dim_arc.TextOverride = "凸<>"
     return arc
@@ -79,23 +81,21 @@ def negative_radius(self):
         dim2.TextOverride = "%%c<>"
         dim2.StyleName = "ZqStandard$0"  # 设置为半标注
 
-    line3 = self.acad.model.AddLine(APoint(self.center.x, self.y_connect2), APoint(self.center.x + self.half_chordN, self.y_connect2))
-    line3.Layer = "轮廓线"
-    
+
     locate_angle=self.start_angle+self.theta/6
     arc, dim_arc = AD(self.acad, self.center, self.radius, self.start_angle, math.pi*1.5, locate_angle=locate_angle)
     if dim_arc is not None:
         dim_arc.TextOverride = "凹<>"
-    
-    line4 = self.acad.model.AddArc(self.center, self.radius2, math.pi*1.5 + self.theta_small, math.pi*1.5 + self.theta_big)
-    line4.Layer = "轮廓线"
-    line5 = self.acad.model.AddArc(self.center, self.radius2, math.pi*1.5 - self.theta_big, math.pi*1.5 - self.theta_small)
-    line5.Layer = "轮廓线"
 
-    arc1 = self.acad.model.AddLine(self.left_pointN, APoint(self.left_pointN.x, self.y_connect2))
-    arc1.Layer = "轮廓线"
-    arc2 = self.acad.model.AddLine(self.right_pointN, APoint(self.right_pointN.x, self.y_connect2))
-    arc2.Layer = "轮廓线"
+    self.acad.model.AddArc(self.center, self.radius2, math.pi*1.5 + self.theta_small, math.pi*1.5 + self.theta_big)
+    self.acad.model.AddArc(self.center, self.radius2, math.pi*1.5 - self.theta_big, math.pi*1.5 - self.theta_small)
+    
+    
+    locate=self.left_pointN+APoint(-7, 0)
+    LD(self.acad, self.left_pointN, APoint(self.left_pointN.x, self.chord_y2), locate)
+    self.acad.model.AddLine(self.right_pointN, APoint(self.right_pointN.x, self.chord_y2))
+    self.acad.model.AddLine(APoint(self.center.x, self.chord_y2), APoint(self.center.x + self.half_chordN, self.chord_y2))
+
     
     return arc
 

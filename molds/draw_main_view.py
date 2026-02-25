@@ -63,6 +63,10 @@ def positive_radius(self):
     arc, dim_arc = AD(self.acad, self.center, self.radius, self.start_angle, self.end_angle, leader_length=20, locate_angle=self.start_angle+1.5*self.theta)
     if dim_arc is not None:
         dim_arc.TextOverride = "凸<>"
+    dim_locate=self.left_point+APoint(25, 0)
+    dim_dia=self.acad.model.AddDimAligned(self.left_point, self.right_point, dim_locate)
+    dim_dia.TextOverride = "%%c<>"
+    dim_dia.Layer = "标注线"
     return arc
 def negative_radius(self):
     """绘制负半径主视图

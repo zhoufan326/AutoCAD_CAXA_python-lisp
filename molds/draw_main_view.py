@@ -9,7 +9,6 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from pyautocad import APoint, aDouble
 from utils import LD, AD, CL
-from draw_bottom import bottom
 
 def draw_main_view(self):
     """绘制主视图
@@ -25,11 +24,8 @@ def draw_main_view(self):
     else:
         negative_radius(self)
         KC(self)
-    #判断是否绘制底座
-    if self.draw_bottom_part:
-        bottom(self)
     # 绘制中心线
-    CL(self, self.chord_center+APoint(0, 15), APoint(self.center.x, self.y_Low - 15))
+    CL(self.acad, self.chord_center+APoint(0, 15), APoint(self.center.x, self.y_Low - 15))
  
 
     self.acad.doc.SendCommand("_.zoom _e ")
@@ -54,14 +50,14 @@ def positive_radius(self):
     """绘制正半径主视图
     """
     self.acad.model.AddLine(APoint(self.center.x, self.chord_y), self.right_point)
-    self.acad.model.AddLine(APoint(self.center.x, self.y_connect), APoint(self.center.x + 5, self.y_connect))
-    self.acad.model.AddLine(APoint(self.center.x, self.y_Up), APoint(self.center.x + 5, self.y_Up))
+
+    #y_connect指连接轴的上半部分，y_Up指底座的上纵坐标，y_Low指底座的下纵坐标
     locate=self.left_point+APoint(-7, 0)
     LD(self.acad, self.left_point, APoint(self.left_point.x, self.y_connect), locate)
 
     self.acad.model.AddLine(APoint(self.left_point.x, self.y_connect), APoint(self.center.x - 5, self.y_connect))
     self.acad.model.AddLine(self.right_point, APoint(self.right_point.x, self.y_connect))
-    self.acad.model.AddLine(APoint(self.right_point.x, self.y_connect), APoint(self.center.x + 5, self.y_connect))
+    self.acad.model.AddLine(APoint(self.right_point.x, self.y_connect), APoint(self.center.x , self.y_connect))
 
     # 使用AD函数绘制圆弧并添加标注
     arc, dim_arc = AD(self.acad, self.center, self.radius, self.start_angle, self.end_angle, leader_length=20, locate_angle=self.start_angle+1.5*self.theta)

@@ -83,7 +83,9 @@ def main(parameter):
         block_path = os.path.join(blocks_path, block_file)
         insert_block(acad, insertion_point, block_path)
         time.sleep(1.5)
-    
+    Text1=acad.model.AddText("2:1", base+APoint(47,-80), 3.5)
+    Text1.StyleName = "宋体"#注意，这里也是访问sytlename属性
+
     return  acad, filename
 
 

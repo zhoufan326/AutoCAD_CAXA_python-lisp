@@ -12,7 +12,12 @@ def calculate_geometry(location, radius: float, chord_length: float, a: float = 
     #----------------------------重要参数----------------------------#
     #定义模子的位置
     chord_center=location #定义模子圆弧上弦的位置   
-    
+    width_Connect=10
+    if (abs(radius) < 11 or chord_length < 18):
+        width_Connect=6
+    #底座的上宽度和下宽度
+    width_Up=18
+    width_Low=18
     
     half_chord = chord_length / 2
     half_theta_rad = math.asin(half_chord / abs(radius))
@@ -64,7 +69,7 @@ def calculate_geometry(location, radius: float, chord_length: float, a: float = 
         #半径2根据弦心距和半弦长计算
         radius2=half_chordN/math.sin(theta_big)
 
-        theta_small=math.asin(5/radius2)
+        theta_small=math.asin(width_Connect/2/radius2)
         #小圆心角对应的弦心距
         chord_to_center3=radius2*math.cos(theta_small)                                               
 
@@ -110,7 +115,9 @@ def calculate_geometry(location, radius: float, chord_length: float, a: float = 
         "right_point": right_point,
         "left_pointN": left_pointN,
         "right_pointN": right_pointN,
-    
+        "width_Connect": width_Connect,
+        "width_Up": width_Up,
+        "width_Low": width_Low,
         # 返回传入的几何参数以便绘图代码可以直接使用
         "a": a,
         "b": b,

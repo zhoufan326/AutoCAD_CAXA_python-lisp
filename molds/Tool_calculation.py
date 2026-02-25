@@ -73,7 +73,7 @@ class SwingMachineToolingCalculator:
         if not (abs(self.R) <= 11 or self.grind_D <= 18):
            #精磨丸片厚度按4算
            diamend_JM = self.diamond_pellet_thickness+1
-           self.XJMJM_R = (abs(self.XJMJM_R) + diamend_JM) if self.XJMJM_R > 0 else -(abs(self.XJMJM_R) + diamend_JM)   
+           self.XJMJM_R = self.XJMJM_R - diamend_JM
         self.XJMJM_Φ = abs(self.XJMJM_R) * self.grind_D / abs(self.R)
         return self.XJMJM_R, self.XJMJM_Φ
         

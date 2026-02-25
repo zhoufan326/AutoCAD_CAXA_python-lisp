@@ -6,27 +6,18 @@ from pyautocad import APoint, aDouble
 from utils import AD,LD
 
 
-def bottom(self):
+def draw_bottom(self):
     """绘制底座部分
     """
-    
-    #连接轴的宽度
-    width_Connect=10
-    #底座的上宽度和下宽度
-    width_Up=18
-    width_Low=18
-    if (abs(self.radius) < 11 or self.chord_length < 18):
-        width_Connect=6
-       
-       
+      
     left = [0] * 5
     right = [0] * 5
     
     if self.drawing_type in ("XJMJM", "XPMJM"):
-        left[0] = APoint(self.center.x - width_Connect/2, self.y_connect)
-        left[1] = APoint(self.center.x - width_Connect/2, self.y_Up)
-        left[2] = APoint(self.center.x - width_Up/2, self.y_Up)
-        left[3] = APoint(self.center.x - width_Low/2, self.y_Low)
+        left[0] = APoint(self.center.x - self.width_Connect/2, self.y_connect)
+        left[1] = APoint(self.center.x - self.width_Connect/2, self.y_Up)
+        left[2] = APoint(self.center.x - self.width_Up/2, self.y_Up)
+        left[3] = APoint(self.center.x - self.width_Low/2, self.y_Low)
         locate1=left[1]+APoint(-7, 0)
         line1,dim1 = LD(self.acad, left[0], left[1], locate1)
         line12=self.acad.model.AddLine(left[1], left[2])
@@ -34,10 +25,10 @@ def bottom(self):
         locate2=left[2]+APoint(-1, 0)
         line2,dim2 = LD(self.acad, left[2], left[3], locate2)
 
-        right[0] = APoint(self.center.x + width_Connect/2, self.y_connect)
-        right[1] = APoint(self.center.x + width_Connect/2, self.y_Up)
-        right[2] = APoint(self.center.x + width_Up/2, self.y_Up)
-        right[3] = APoint(self.center.x + width_Low/2, self.y_Low)
+        right[0] = APoint(self.center.x + self.width_Connect/2, self.y_connect)
+        right[1] = APoint(self.center.x + self.width_Connect/2, self.y_Up)
+        right[2] = APoint(self.center.x + self.width_Up/2, self.y_Up)
+        right[3] = APoint(self.center.x + self.width_Low/2, self.y_Low)
         lowpoint = right[3]
         #绘制右侧非剖面的轮廓直线
         self.acad.model.AddLine(APoint(self.center.x, self.y_connect), right[0])
@@ -59,16 +50,15 @@ def bottom(self):
         line4.Layer = "虚线"
 
     else:
-        width_Connect=10
-        width_Up=14
-        width_Low=10
+        self.width_Up=14
+        self.width_Low=10
         
-        left[0] = APoint(self.center.x - width_Connect/2, self.y_connect)
-        left[1] = APoint(self.center.x - width_Connect/2, self.y_Up)
-        left[2] = APoint(self.center.x - width_Up/2, self.y_Up)
+        left[0] = APoint(self.center.x - self.width_Connect/2, self.y_connect)
+        left[1] = APoint(self.center.x - self.width_Connect/2, self.y_Up)
+        left[2] = APoint(self.center.x - self.width_Up/2, self.y_Up)
         self.acad.model.AddLine(left[1], left[2])
-        left[3] = APoint(self.center.x - width_Up/2, self.y_Up2)
-        left[4] = APoint(self.center.x - width_Low/2, self.y_Low)
+        left[3] = APoint(self.center.x - self.width_Up/2, self.y_Up2)
+        left[4] = APoint(self.center.x - self.width_Low/2, self.y_Low)
         
         locate1=left[1]+APoint(-7, 0)
         locate2=left[2]+APoint(-7, 0)
@@ -77,11 +67,11 @@ def bottom(self):
         line2,dim2 = LD(self.acad, left[2], left[3], locate2)
         line3,dim3 = LD(self.acad, left[3], left[4], locate3,dim_type="Rotated",dim_angle=math.pi/2)
         
-        right[0] = APoint(self.center.x + width_Connect/2, self.y_connect)
-        right[1] = APoint(self.center.x + width_Connect/2, self.y_Up)
-        right[2] = APoint(self.center.x + width_Up/2, self.y_Up)
-        right[3] = APoint(self.center.x + width_Up/2, self.y_Up2)
-        right[4] = APoint(self.center.x + width_Low/2, self.y_Low)
+        right[0] = APoint(self.center.x + self.width_Connect/2, self.y_connect)
+        right[1] = APoint(self.center.x + self.width_Connect/2, self.y_Up)
+        right[2] = APoint(self.center.x + self.width_Up/2, self.y_Up)
+        right[3] = APoint(self.center.x + self.width_Up/2, self.y_Up2)
+        right[4] = APoint(self.center.x + self.width_Low/2, self.y_Low)
         lowpoint = right[4]
 
         
@@ -104,8 +94,8 @@ def bottom(self):
 
 
         # 添加锥度标注
-        arrow_pnt = APoint((width_Up+width_Low)/4, (self.y_Low + self.y_Up) / 2)
-        baseline_pnt = APoint((width_Up+width_Low)/4+10, (self.y_Low + self.y_Up) / 2 - 5)
+        arrow_pnt = APoint((self.width_Up+self.width_Low)/4, (self.y_Low + self.y_Up) / 2)
+        baseline_pnt = APoint((self.width_Up+self.width_Low)/4+10, (self.y_Low + self.y_Up) / 2 - 5)
         
         pnts_array = np.array([arrow_pnt, baseline_pnt]).flatten()
         pnts_array = aDouble(pnts_array)

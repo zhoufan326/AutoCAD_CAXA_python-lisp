@@ -10,6 +10,7 @@ from geometry import calculate_geometry
 from draw_main_view import draw_main_view
 from draw_top_view import draw_top_view
 from utils import safe_acad_retry
+from draw_bottom import draw_bottom
 
 class DrawingOperations:
     def __init__(self, radius: float, chord_length: float, a_value: float = 3, b_value: float = 6, c_value: float = 25, drawing_type=None, draw_bottom_part=True):
@@ -56,7 +57,12 @@ class DrawingOperations:
         self.c = geometry.get("c", 25)
         self.chord_y2 = self.chord_y - self.a 
         self.chord_center=geometry["chord_center"]
-    
+        #连接轴的宽度
+        self.width_Connect=geometry["width_Connect"]
+        #底座的上宽度和下宽度
+        self.width_Up=geometry["width_Up"]
+        self.width_Low=geometry["width_Low"]
+                
     @safe_acad_retry(max_retries=5, delay=1.0, name="初始化AutoCAD实例")
     def _initialize_acad(self):
         """初始化并验证AutoCAD实例"""
@@ -68,11 +74,18 @@ class DrawingOperations:
         """绘制所有视图"""
         if self.drawing_type in ("XJMJM", "XPMJM"):
             draw_main_view(self)
-            draw_top_view(self) 
-           
-        else:
-            draw_main_view(self) 
+            
+            #判断是否绘制底座,如果不绘制底座，也不绘制俯视图
+            if self.draw_bottom_part:
+                draw_bottom(self)
+                draw_top_view(self) 
 
+
+        else:
+
+            draw_main_view(self) 
+            if self.draw_bottom_part:
+               draw_bottom(self)
         print("缩放到范围...")
         self.acad.doc.SendCommand("_.zoom _e ")
         time.sleep(0.5) 

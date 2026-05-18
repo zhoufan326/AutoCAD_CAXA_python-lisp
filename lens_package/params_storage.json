@@ -1,0 +1,41 @@
+[
+  {
+    "base": {
+      "type": "APoint",
+      "x": 0.0,
+      "y": 0.0
+    },
+    "radius1": -722.3,
+    "radius2": -40.46,
+    "outer_diameter": 18.4,
+    "center_thickness": 5.0
+  },
+  {
+    "base": {
+      "type": "APoint",
+      "x": 50.0,
+      "y": 0.0
+    },
+    "radius1": -722.3,
+    "radius2": -40.46,
+    "outer_diameter": 19.4,
+    "center_thickness": 5.4,
+    "edge_thickness": null
+  },
+  {
+    "base": {
+      "type": "APoint",
+      "x": 100.0,
+      "y": 0.0
+    },
+    "radius1": -722.3,
+    "radius2": 40.46,
+    "outer_diameter": 19.4,
+    "center_thickness": 5.0,
+    "edge_thickness": null,
+    "sagitta1": null,
+    "sagitta2": null,
+    "inner_diameter_S1": null,
+    "inner_diameter_S2": null
+  }
+]

@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=64.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "autocad-lens-package"
+version = "1.0.0"
+description = "镜片AutoCAD绘图工具包 - AutoCAD Lens Drawing Toolkit"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "AutoCAD Lens Package Contributors" }
+]
+requires-python = ">=3.8"
+dependencies = [
+    "pyautocad>=1.0.0",
+]
+keywords = ["autocad", "lens", "cad", "drawing", "镜片"]
+
+[project.urls]
+Homepage = "https://github.com/autocad-lens-package"
+Repository = "https://github.com/autocad-lens-package"
+
+[tool.setuptools]
+packages = { find = { include = ["lens_package", "lens_package.*"] } }
+
+[tool.setuptools.package-data]
+"lens_package" = [
+    "*.json",
+    "icons/*.svg",
+    "icons/*.ico",
+    "icons/*.png",
+]
+"lens_package.utils" = ["*.py"]
+"lens_package.dimension" = ["*.py"]
+"lens_package.calculator" = ["*.py"]
+
+[project.scripts]
+lens-draw = "lens_package.draw_lens:main"
+lens-gui = "lens_package.lens_gui:main"

@@ -1,19 +1,26 @@
-# Python
+# Python 缓存
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
 venv/
 env/
+.venv/
 
-# Temporary files
-ago'
-ago' -n 20
+# 构建产物
+build/
+dist/
+*.spec
+auto_venv.json
 
-# AutoCAD
+# 临时文件
+_temp_*
 *.bak
 *.dwl
 *.dwl2
-*.dwt
+
+# 输出目录
+output/
 
 # IDE
 .vscode/

@@ -1,0 +1,9 @@
+# AutoCAD Lens Package 依赖
+pyautocad>=1.0.0
+
+# 构建工具（可选）
+# setuptools>=64.0
+# wheel
+
+# 打包为可执行文件（可选）
+# pyinstaller>=6.0.0

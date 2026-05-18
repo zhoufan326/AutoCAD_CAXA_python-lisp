@@ -1,0 +1,5 @@
+include README.md
+include LICENSE
+recursive-include lens_package *.json
+recursive-include lens_package/icons *.svg *.ico *.png
+recursive-include lens_package *.py

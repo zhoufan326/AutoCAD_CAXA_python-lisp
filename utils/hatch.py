@@ -52,6 +52,8 @@ def create_hatch(acad, internal_x=-99, internal_y=1, pattern="ANSI31", scale=0.5
         print(f"剖面线创建失败: {e}")
         return False
 
+__version__ = "0.2.0"
+
 # 使用示例
 if __name__ == "__main__":
     # 连接到已打开的AutoCAD

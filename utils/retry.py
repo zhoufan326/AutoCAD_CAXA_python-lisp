@@ -12,3 +12,5 @@ def retry(operation, operation_name="操作", max_retries=3, initial_delay=1.0):
                 continue
             else:
                 raise
+
+__version__ = "0.2.0"

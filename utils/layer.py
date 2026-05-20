@@ -63,3 +63,5 @@ if __name__ == "__main__":
     set_layer("虚线", create_if_missing=False)  # 只设置，不创建
     acad.doc.SendCommand("_QSAVE\n")
     del acad
+
+__version__ = "0.2.0"

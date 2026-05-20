@@ -1,57 +1,57 @@
 {
   "lens_selection": {
     "1": true,
-    "2": false,
-    "3": false
+    "2": true,
+    "3": true
   },
   "lens_data": {
     "lens1": {
-      "radius1": "-28.11",
+      "radius1": "-29.059",
       "radius1_tolerance": "",
-      "sagitta1": "-0.316",
+      "sagitta1": "-0.11",
       "sagitta1_tolerance": "",
-      "radius2": "28",
+      "radius2": "-7.425",
       "radius2_tolerance": "",
       "sagitta2": "",
       "sagitta2_tolerance": "",
-      "center_thickness": "5",
+      "center_thickness": "2.22",
       "thickness_tolerance": "0.02",
-      "outer_diameter": "11.5",
-      "upper_tolerance": "0.06",
-      "lower_tolerance": "0.03"
+      "outer_diameter": "6",
+      "upper_tolerance": "-0.01",
+      "lower_tolerance": "0.022"
     },
     "lens2": {
-      "radius1": "-28.11",
+      "radius1": "-29.059",
       "radius1_tolerance": "",
-      "sagitta1": "-0.316",
+      "sagitta1": "-0.11",
       "sagitta1_tolerance": "",
-      "radius2": "28",
+      "radius2": "-7.425",
       "radius2_tolerance": "",
       "sagitta2": "",
       "sagitta2_tolerance": "",
-      "center_thickness": "5",
+      "center_thickness": "2.22",
       "thickness_tolerance": "0.02",
-      "outer_diameter": "11.5",
-      "upper_tolerance": "",
-      "lower_tolerance": ""
+      "outer_diameter": "7",
+      "upper_tolerance": "0",
+      "lower_tolerance": "-0.05"
     },
     "lens3": {
-      "radius1": "-28.11",
+      "radius1": "-29.059",
       "radius1_tolerance": "",
-      "sagitta1": "-0.316",
+      "sagitta1": "-0.11",
       "sagitta1_tolerance": "",
-      "radius2": "28",
+      "radius2": "-7.425",
       "radius2_tolerance": "",
       "sagitta2": "",
       "sagitta2_tolerance": "",
-      "center_thickness": "5",
+      "center_thickness": "2.48",
       "thickness_tolerance": "0.02",
-      "outer_diameter": "11.5",
-      "upper_tolerance": "",
-      "lower_tolerance": ""
+      "outer_diameter": "7",
+      "upper_tolerance": "0",
+      "lower_tolerance": "-0.05"
     }
   },
   "sync_params": true,
-  "sync_thickness_tolerance_params": true,
-  "sync_center_thickness_params": true
+  "sync_thickness_tolerance_params": false,
+  "sync_center_thickness_params": false
 }

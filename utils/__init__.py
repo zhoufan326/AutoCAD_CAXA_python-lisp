@@ -30,3 +30,5 @@ __all__ = [
     '_open_template',
     '_initialize_acad'
 ]
+
+__version__ = "0.2.0"

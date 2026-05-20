@@ -2,17 +2,21 @@
 import math
 import os
 import sys
+import time
 
 # 路径配置 - 必须在导入本地模块之前设置
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, PROJECT_ROOT)
 
 from pyautocad import APoint, Autocad
-from utils import set_layer, create_hatch
+from utils import set_layer, create_hatch, retry
 from utils.scale_select import get_dimension_params
 
 # 常量定义
-TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "新图样.dwt")
+if getattr(sys, 'frozen', False):
+    TEMPLATE_PATH = os.path.join(sys._MEIPASS, "新图样.dwt")
+else:
+    TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "新图样.dwt")
 
 
 class DrawLens:
@@ -23,36 +27,30 @@ class DrawLens:
         if acad is None:
             self.acad = Autocad(create_if_not_exists=True)
             print("正在连接AutoCAD...")
+            try:
+                retry(
+                    lambda: self.acad.app.Name,
+                    operation_name="AutoCAD连接检查",
+                    max_retries=5,
+                    initial_delay=1.0
+                )
+            except Exception:
+                pass
+            time.sleep(1.0)
         else:
             self.acad = acad
             print("使用外部提供的AutoCAD连接")
 
         if template_path and os.path.exists(template_path):
             self.acad.app.Documents.Add(template_path)
-            
-            # 设置打印样式表和绘图仪
-            try:
-                # 获取当前文档
-                doc = self.acad.doc
-                
-                # 获取活动布局
-                active_layout = doc.ActiveLayout
-                
-                # 设置打印样式表为 monochrome.ctb
-                active_layout.StyleSheet = "monochrome.ctb"
-                
-                # 设置绘图仪为 PublishToWeb PNG.pc3
-                active_layout.ConfigName = "PublishToWeb PNG.pc3"
-                doc.SetVariable("Filedia", 0)  # 禁用文件对话框
-                doc.SetVariable("BACKGROUNDPLOT", 0)  # 前台打印
-                print("✓ 打印设置已配置: 样式表=monochrome.ctb, 绘图仪=PublishToWeb PNG.pc3")
-            except Exception as e:
-                print(f"⚠️ 设置打印参数时发生错误: {e}")
+       
 
     def calculate_sagitta(self, radius, diameter):
         """计算矢高"""
         if radius is None or diameter is None:
             return None
+        if radius == 0:
+            return 0.0
         half_chord = diameter / 2
         theta = math.asin(half_chord / abs(radius))
         sagitta = abs(radius) * (1 - math.cos(theta))
@@ -65,18 +63,18 @@ class DrawLens:
         end_angle = +theta if R < 0 else math.pi + theta
         return theta, start_angle, end_angle
 
-    def _add_radius_dim(self, C, theta, R, tolerance_key, D, dim_style_name):
+    def _add_radius_dim(self, C, theta, R, tolerance_key, D, dim_style_name, leaderlength):
         """添加单一镜面的半径标注（角度计算方式同Zemax），返回标注对象"""
         if R == 0:
             return None
         angle_rad = math.pi - theta/3 if R > 0 else theta/3
+      
         chord_point = APoint(
             C.x + abs(R) * math.cos(angle_rad),
             C.y + abs(R) * math.sin(angle_rad)
         )
-        dim = self.acad.model.AddDimRadial(C, chord_point, D/30)
+        dim = self.acad.model.AddDimRadial(C, chord_point, leaderlength)
         dim.StyleName = f"{dim_style_name}$4"
-        dim.Update()
 
         tol = self.cur_param.get(tolerance_key)
         dim.TextOverride = f"<>±{round(tol, 3):.3f}" if tol is not None else "<>"
@@ -88,7 +86,7 @@ class DrawLens:
         D = self.cur_param["outer_diameter"]
         dim = self.acad.model.AddDimRotated(
             base, down,
-            APoint(down.x/2, down.y - D/2 - D/5),
+            APoint(down.x/2, down.y - D/2 ),
             math.pi
         )
         tol = self.cur_param.get(tolerance_key)
@@ -152,10 +150,16 @@ class DrawLens:
         
         # 绘制轮廓线
         set_layer("轮廓线")
-        
-        arc1 = self.acad.model.AddArc(C1, abs(R1), start_angle1, end_angle1)
-        arc2 = self.acad.model.AddArc(C2, abs(R2), start_angle2, end_angle2)
-        
+        if R1 != 0:
+            arc1 = self.acad.model.AddArc(C1, abs(R1), start_angle1, end_angle1)
+        else:
+            arc1 = self.acad.model.AddLine(u1, d1)
+        #R=0时，圆弧按直线绘制
+        if R2 != 0:
+            arc2 = self.acad.model.AddArc(C2, abs(R2), start_angle2, end_angle2)
+        else:
+            arc2 = self.acad.model.AddLine(u2, d2)
+       
         # 连接弧线的直线
         line1 = self.acad.model.AddLine(up1, up2)
         line2 = self.acad.model.AddLine(down1, down2)
@@ -182,9 +186,12 @@ class DrawLens:
         set_layer("标注线")
         
         try:
-            # 半径标注 — 第一面 (R1) / 第二面 (R2)
-            self._add_radius_dim(C1, theta1, R1, "radius1_tolerance", D, dim_style_name)
-            self._add_radius_dim(C2, theta2, R2, "radius2_tolerance", D, dim_style_name)
+            # 半径标注 — 第一面 (R1) / 第二面 (R2)  #引线长度为负值时在圆弧内侧，反之在圆弧外侧
+            leaderlength = D/30  if R1 > 0 else -D/30
+            self._add_radius_dim(C1, theta1, R1, "radius1_tolerance", D, dim_style_name, leaderlength)
+            
+            leaderlength = -D/30  if R2 > 0 else D/30
+            self._add_radius_dim(C2, theta2, R2, "radius2_tolerance", D, dim_style_name, leaderlength)
             
             # 设置全局标注样式
             dim_style = self.acad.ActiveDocument.DimStyles.Item(dim_style_name)
@@ -252,7 +259,7 @@ def draw_multiple_lenses(params_list):
             lens.draw_lens(params)
         return True
     except Exception as e:
-        print(f"\n✗ 绘制错误: {e}")
+        print(f"\n[ERR] 绘制错误: {e}")
         return False
 
 
@@ -269,3 +276,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+__version__ = "0.2.1"

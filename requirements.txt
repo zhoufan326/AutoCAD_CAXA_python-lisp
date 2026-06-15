@@ -1,5 +1,5 @@
 # AutoCAD Lens Package 依赖
-pyautocad>=1.0.0
+pywin32>=300
 
 # 构建工具（可选）
 # setuptools>=64.0

@@ -5,7 +5,7 @@
 本模块提供了一个函数，用于在 AutoCAD 中绘制中心线，支持设置线型和线型比例。
 """
 
-from pyautocad import APoint
+from utils.com_interface import APoint
 from .layer import set_layer
 
 

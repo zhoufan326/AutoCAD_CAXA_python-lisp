@@ -1,5 +1,5 @@
 import math
-from pyautocad import APoint
+from utils.com_interface import APoint
 
 def dia(acad_instance, center, radius, angle, leader_length, offset=0):
     """创建直径标注

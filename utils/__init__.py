@@ -14,6 +14,11 @@ from .draw_center_line import CL
 from .retry_decorator import safe_acad_retry
 from .open_template import _open_template
 from .initial_cad_connection import _initialize_acad
+
+# COM接口和CAD工厂
+from .com_interface import Autocad, APoint, aDouble
+from .cad_factory import get_cad, detect_cad
+
 __all__ = [
     'set_layer',
     'create_hatch',
@@ -28,7 +33,14 @@ __all__ = [
     'CL',
     'safe_acad_retry',
     '_open_template',
-    '_initialize_acad'
+    '_initialize_acad',
+    # COM接口
+    'Autocad',
+    'APoint',
+    'aDouble',
+    # CAD工厂（只导出最必要的）
+    'get_cad',
+    'detect_cad',
 ]
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"

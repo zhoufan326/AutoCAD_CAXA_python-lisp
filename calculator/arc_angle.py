@@ -1,5 +1,5 @@
 import math
-from pyautocad import APoint
+from utils.com_interface import APoint
 #根据圆弧的弦长和角度计算圆弧的起始角和终止角
 def calculate_arc_parameter(center,chord_length, radius, direction):
     """计算圆弧的起始角和终止角,

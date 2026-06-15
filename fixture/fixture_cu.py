@@ -1,5 +1,5 @@
 import math
-from pyautocad import APoint, aDouble
+from utils.com_interface import APoint, aDouble
 from utils import set_layer
 
 def draw_cu(self, parameter):

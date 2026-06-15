@@ -1,15 +1,10 @@
 {
   "r_value": "-390.4",
   "d_value": "71.71",
-  "a_value": 4.5,
-  "b_value": 6.0,
-  "c_value": 25.0,
+  "a_value": "4.5",
+  "b_value": "6.0",
+  "c_value": "25.0",
   "designer_name": "周凡",
-  "selected_groups": [
-    2,
-    3,
-    4,
-    5
-  ],
+  "selected_groups": [],
   "draw_bottom": false
 }

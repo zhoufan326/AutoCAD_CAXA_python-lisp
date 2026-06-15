@@ -1,5 +1,5 @@
 # 直接创建 AutoCAD 实例
-from pyautocad import Autocad
+from utils.com_interface import Autocad
 import time
 from .retry_decorator import safe_acad_retry
 

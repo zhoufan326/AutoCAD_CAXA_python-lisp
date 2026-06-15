@@ -1,4 +1,4 @@
-from pyautocad import Autocad
+from utils.com_interface import Autocad
 
 # 在创建图形之前加载线型
 def load_linetypes(acad):

@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # 第三方库导入
-from pyautocad import APoint, aDouble
+from utils.com_interface import APoint, aDouble
 
 # 项目模块导入
 from utils import LD, AD

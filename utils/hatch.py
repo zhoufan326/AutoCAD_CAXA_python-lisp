@@ -5,7 +5,7 @@
 # create_hatch(acad, internal_x=-3, internal_y=-8, pattern="ANSI31", scale=1.0, angle=0)
 
 
-from pyautocad import Autocad
+from utils.com_interface import Autocad
 import time
 acad = Autocad(create_if_not_exists=True) 
 def create_hatch(acad, internal_x=-99, internal_y=1, pattern="ANSI31", scale=0.5, angle=0):

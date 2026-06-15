@@ -5,7 +5,7 @@
 本模块提供了一个函数，用于在 AutoCAD 中绘制两点间的直线并创建对齐标注，同时支持设置公差。
 """
 
-from pyautocad import APoint
+from utils.com_interface import APoint
 from .retry_decorator import safe_acad_retry
 
 
@@ -79,7 +79,7 @@ def LD(acad, point1, point2, locate, upper_tolerance=0.0, lower_tolerance=0.0, l
 if __name__ == "__main__":
     # 示例用法（仅在有 AutoCAD 的环境下有意义）
     try:
-        from pyautocad import Autocad
+        from utils.com_interface import Autocad
         
         # 连接到 AutoCAD
         acad = Autocad(create_if_not_exists=True)

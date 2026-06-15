@@ -13,7 +13,7 @@ sys.path.insert(0, PROJECT_ROOT)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # 第三方库导入
-from pyautocad import APoint, aDouble, Autocad
+from utils.com_interface import APoint, aDouble, Autocad
 
 # 项目模块导入
 from Tool_calculation import SwingMachineToolingCalculator
@@ -69,7 +69,7 @@ def main(parameter):
     draw_main_view(acad, radius, center, chord=diameter)   
     
     # 后续通用操作
-    date_name(name=filename)
+    date_name(acad, name=filename)
     
     _zoom_and_create_hatch(acad, base.x + 2, base.y + 2)
     CL(acad, base+APoint(-3,0), base+APoint(10,0))

@@ -19,7 +19,7 @@ import sys
 import shutil
 import subprocess
 
-PROJECT_VERSION = "0.2.1"
+PROJECT_VERSION = "0.3.1"
 
 
 def build_exe():
@@ -62,11 +62,9 @@ def build_exe():
             f"--paths={script_dir}",
             f"--paths={project_root}",
             f"--add-data={os.path.join(script_dir, 'lens_gui_data.json')};lens",
-            f"--add-data={os.path.join(script_dir, 'params_storage.json')};lens",
             f"--add-data={utils_dir};utils",
             f"--add-data={os.path.join(project_root, '新图样.dwt')};.",
             f"--hidden-import=utils",
-            f"--hidden-import=pyautocad",
             main_script,
         ]
 

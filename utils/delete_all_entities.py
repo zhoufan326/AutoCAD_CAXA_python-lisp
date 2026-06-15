@@ -1,8 +1,8 @@
-import pyautocad
+from utils.com_interface import Autocad
 #使用sendcommand的方式删除
 def delete_all_entities():
     """删除模型空间和图纸空间中的所有实体。"""
-    acad = pyautocad.Autocad()
+    acad = Autocad()
     # 删除模型空间对象（SendCommand 可能抛出 COM 错误）
     try:
         doc = getattr(acad, 'doc', None)

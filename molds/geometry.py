@@ -1,7 +1,7 @@
 # geometry.py
 import math
 from typing import Any, Dict
-from pyautocad import APoint
+from utils.com_interface import APoint
 
 def calculate_geometry(location, radius: float, chord_length: float, a: float = 3, b: float = 6, c: float = 25) -> Dict[str, Any]:
     """计算所有几何参数 

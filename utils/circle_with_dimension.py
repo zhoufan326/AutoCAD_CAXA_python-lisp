@@ -6,7 +6,7 @@
 """
 
 import math
-from pyautocad import APoint
+from utils.com_interface import APoint
 
 
 def CD(acad, center, radius, angle, leader_length, upper_tolerance=0.0, lower_tolerance=0.0, layer="轮廓线"):
@@ -75,7 +75,7 @@ def CD(acad, center, radius, angle, leader_length, upper_tolerance=0.0, lower_to
 if __name__ == "__main__":
     # 示例用法（仅在有 AutoCAD 的环境下有意义）
     try:
-        from pyautocad import Autocad
+        from utils.com_interface import Autocad
         
         # 连接到 AutoCAD
         acad = Autocad(create_if_not_exists=True)

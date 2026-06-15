@@ -7,7 +7,7 @@ import numpy as np
 
 # 添加当前目录到Python路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from pyautocad import APoint, aDouble
+from utils.com_interface import APoint, aDouble
 from utils import LD, AD, CL
 
 def draw_main_view(self):

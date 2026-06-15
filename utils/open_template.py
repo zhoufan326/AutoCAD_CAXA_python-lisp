@@ -1,6 +1,6 @@
 import time
 import os
-from pyautocad import Autocad, APoint
+from utils.com_interface import Autocad, APoint
 from .retry_decorator import safe_acad_retry
 @safe_acad_retry(3, 1.0, "打开模板")
 def _open_template(path: str):

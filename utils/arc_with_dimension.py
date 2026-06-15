@@ -7,7 +7,7 @@
 
 import math
 from pydoc import locate
-from pyautocad import APoint
+from utils.com_interface import APoint
 from .retry_decorator import safe_acad_retry
 
 
@@ -83,7 +83,7 @@ def AD(acad, center, radius, start_angle, end_angle, leader_length=20,
 def demo():
     """演示函数 - 展示模块功能"""
     try:
-        from pyautocad import Autocad
+        from utils.com_interface import Autocad
         
         acad = Autocad(create_if_not_exists=True)
         

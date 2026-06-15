@@ -1,4 +1,4 @@
-from pyautocad import Autocad
+from utils.com_interface import Autocad
 import time
 from .retry_decorator import safe_acad_retry
 

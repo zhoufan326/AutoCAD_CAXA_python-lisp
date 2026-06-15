@@ -9,7 +9,7 @@ import subprocess
 from typing import Any, Dict, Optional, List
 
 
-from pyautocad import Autocad, APoint
+from utils.com_interface import Autocad, APoint
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # 添加项目根目录和 molds 目录到 Python 路径
@@ -148,7 +148,7 @@ def batch_draw_molds(
                     set_layer("轮廓线")
                     _insert_blocks(ops.acad, dt, designer_name)  # 使用ops内部的acad实例
                     filename = generate_filename(radius, chord_length, drawing_type=dt)
-                    date_name(name=filename)
+                    date_name(ops.acad, name=filename)
                     save_drawing(ops.acad, filename, DEFAULT_SAVE_DIR, dwg_version=60)  # 使用ops内部的acad实例
 
                     print("  ✓ 完成")

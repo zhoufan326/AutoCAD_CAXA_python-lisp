@@ -1,6 +1,6 @@
 # draw_top_view.py - 绘制俯视图模块
 import math
-from pyautocad import APoint, aDouble
+from utils.com_interface import APoint, aDouble
 from dimension import dia
 from utils import LD, AD, CD, set_layer
 from calculator.arc_angle import calculate_arc_parameter

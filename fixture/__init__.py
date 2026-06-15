@@ -15,7 +15,7 @@ from fixture import FixtureOperations
 fixture = FixtureOperations()
 
 # 方法2：使用现有的AutoCAD连接
-# from pyautocad import Autocad
+# from utils.com_interface import Autocad
 # acad = Autocad()
 # fixture = FixtureOperations(acad=acad)
 

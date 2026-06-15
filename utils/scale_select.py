@@ -5,7 +5,7 @@
 根据镜片外径D值返回相应的标注参数
 """
 
-def get_dimension_params(D):
+def get_dimension_params(D,Tc):
     """
     根据镜片外径D值获取相应的标注参数
     
@@ -16,9 +16,9 @@ def get_dimension_params(D):
         tuple: (text_height, hatch_scale, dim_style_name, linetype_scale)
     """
     # 直接使用公式计算text_height和hatch_scale，不使用选择语句
-    text_height = D / 10.0        # S1、S2标签文字高度 = D/10
-    hatch_scale = D / 50.0         # 剖面线比例 = D/50
-    linetype_scale = D / 200.0     # 中心线比例 = D/200
+    text_height = D / 10.0        # S1、S2标签文字高度 = D/10，文字高度用外径计算大小
+    hatch_scale = D * Tc / 800.0        # 剖面线比例 = D*Tc/800,剖面线用面积计算大小
+    linetype_scale = D / 200.0     # 中心线比例 = D/200，中心线用外径计算大小
     
     # 保持标注样式名称的选择逻辑
     if D < 5:

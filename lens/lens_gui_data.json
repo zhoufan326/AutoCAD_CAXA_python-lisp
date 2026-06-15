@@ -2,56 +2,106 @@
   "lens_selection": {
     "1": true,
     "2": true,
-    "3": true
+    "3": true,
+    "4": true
+  },
+  "sync_config": {
+    "radius": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true
+    },
+    "center_thickness": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true
+    },
+    "thickness_tolerance": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true
+    },
+    "sagitta": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true
+    },
+    "sagitta_tolerance": {
+      "1": true,
+      "2": true,
+      "3": true,
+      "4": true
+    }
   },
   "lens_data": {
     "lens1": {
-      "radius1": "-29.059",
+      "radius1": "-28.11",
       "radius1_tolerance": "",
-      "sagitta1": "-0.11",
+      "sagitta1": "-0.316",
       "sagitta1_tolerance": "",
-      "radius2": "-7.425",
+      "radius2": "28",
       "radius2_tolerance": "",
       "sagitta2": "",
       "sagitta2_tolerance": "",
-      "center_thickness": "2.22",
+      "center_thickness": "5",
       "thickness_tolerance": "0.02",
-      "outer_diameter": "6",
-      "upper_tolerance": "-0.01",
-      "lower_tolerance": "0.022"
+      "outer_diameter": "11.5",
+      "upper_tolerance": "0.05",
+      "lower_tolerance": "0.05"
     },
     "lens2": {
-      "radius1": "-29.059",
+      "radius1": "-28.11",
       "radius1_tolerance": "",
-      "sagitta1": "-0.11",
+      "sagitta1": "-0.316",
       "sagitta1_tolerance": "",
-      "radius2": "-7.425",
+      "radius2": "28",
       "radius2_tolerance": "",
       "sagitta2": "",
       "sagitta2_tolerance": "",
-      "center_thickness": "2.22",
+      "center_thickness": "5",
       "thickness_tolerance": "0.02",
-      "outer_diameter": "7",
-      "upper_tolerance": "0",
-      "lower_tolerance": "-0.05"
+      "outer_diameter": "11.5",
+      "upper_tolerance": "",
+      "lower_tolerance": ""
     },
     "lens3": {
-      "radius1": "-29.059",
+      "radius1": "-28.11",
       "radius1_tolerance": "",
-      "sagitta1": "-0.11",
+      "sagitta1": "-0.316",
       "sagitta1_tolerance": "",
-      "radius2": "-7.425",
+      "radius2": "28",
       "radius2_tolerance": "",
       "sagitta2": "",
       "sagitta2_tolerance": "",
-      "center_thickness": "2.48",
+      "center_thickness": "5",
       "thickness_tolerance": "0.02",
-      "outer_diameter": "7",
-      "upper_tolerance": "0",
-      "lower_tolerance": "-0.05"
+      "outer_diameter": "11.5",
+      "upper_tolerance": "",
+      "lower_tolerance": ""
+    },
+    "lens4": {
+      "radius1": "-28.11",
+      "radius1_tolerance": "",
+      "sagitta1": "-0.316",
+      "sagitta1_tolerance": "",
+      "radius2": "28",
+      "radius2_tolerance": "",
+      "sagitta2": "",
+      "sagitta2_tolerance": "",
+      "center_thickness": "5",
+      "thickness_tolerance": "0.02",
+      "outer_diameter": "11.5",
+      "upper_tolerance": "",
+      "lower_tolerance": "",
+      "outer_diameter_min": "10",
+      "outer_diameter_min_upper_tolerance": "-0.02",
+      "outer_diameter_min_lower_tolerance": "0.6",
+      "Minsagitta1": "-0.25",
+      "Minsagitta2": ""
     }
-  },
-  "sync_params": true,
-  "sync_thickness_tolerance_params": false,
-  "sync_center_thickness_params": false
+  }
 }

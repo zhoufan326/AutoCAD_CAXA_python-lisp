@@ -2,7 +2,7 @@
 import math
 import numpy as np
 from pydoc import locate
-from pyautocad import APoint, aDouble
+from utils.com_interface import APoint, aDouble
 from utils import AD,LD
 
 

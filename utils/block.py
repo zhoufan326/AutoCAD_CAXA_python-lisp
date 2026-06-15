@@ -1,5 +1,5 @@
 import time
-from pyautocad import APoint
+from utils.com_interface import vt_point
 
 def insert_block(acad, insertionPnt, block_name, max_retries=3, retry_delay=1.5):
     """插入图块到AutoCAD模型空间
@@ -17,7 +17,7 @@ def insert_block(acad, insertionPnt, block_name, max_retries=3, retry_delay=1.5)
     
     for attempt in range(1, max_retries + 1):
         try:
-            RetVal = model.InsertBlock(insertionPnt, block_name, 1, 1, 1, 0)
+            RetVal = model.InsertBlock(vt_point(insertionPnt), block_name, 1, 1, 1, 0)
             return RetVal
         except Exception as e:
             error_str = str(e)
